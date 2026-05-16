@@ -14,7 +14,7 @@ from .just_say_no import PassJustSayNo, PlayJustSayNo
 from .money import PayDebt, PlayMoneyFromHand
 from .pass_go import PlayPassGo
 from .play_property import PlayPropertyFromHand
-from .rent import PlayRent
+from .rent import PlayDoubleRent, PlayRent
 from .sly_deal import PlaySlyDeal
 
 __all__ = [
@@ -30,6 +30,7 @@ __all__ = [
     "PlayMoneyFromHand",
     "PlayPassGo",
     "PlayPropertyFromHand",
+    "PlayDoubleRent",
     "PlayRent",
     "PlaySlyDeal",
     "DiscardCards",

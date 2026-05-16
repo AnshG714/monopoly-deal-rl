@@ -12,9 +12,9 @@ from ..pending import (
 from .base import (
     GameView,
     player_at,
-    play_action_to_discard_and_interrupt,
     require_hand_action,
     require_main_phase_hand_play,
+    spend_to_discard_and_interrupt,
 )
 
 
@@ -57,11 +57,11 @@ class PlayDealBreaker:
     def apply(self, game: GameView) -> None:
         self.validate(game)
         actor_idx = game.current_player_idx
-        play_action_to_discard_and_interrupt(
+        spend_to_discard_and_interrupt(
             game,
             action_name="play_deal_breaker",
             hand_index=self.hand_index,
-            expected=ActionCardType.DEAL_BREAKER,
+            action_type=ActionCardType.DEAL_BREAKER,
             pending=DealBreakerPending(
                 actor_idx=actor_idx,
                 theft=self._build_intent(game),
@@ -70,5 +70,5 @@ class PlayDealBreaker:
                     actor_idx=actor_idx,
                 ),
             ),
+            acting_player_idx=self.victim_idx,
         )
-        game.acting_player_idx = self.victim_idx

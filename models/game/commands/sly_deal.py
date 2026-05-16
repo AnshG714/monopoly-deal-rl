@@ -8,9 +8,9 @@ from ..pending import JustSayNoNegotiation, SlyDealPending, SlyDealStealIntent
 from .base import (
     GameView,
     player_at,
-    play_action_to_discard_and_interrupt,
     require_hand_action,
     require_main_phase_hand_play,
+    spend_to_discard_and_interrupt,
 )
 
 
@@ -73,11 +73,11 @@ class PlaySlyDeal:
     def apply(self, game: GameView) -> None:
         self.validate(game)
         actor_idx = game.current_player_idx
-        play_action_to_discard_and_interrupt(
+        spend_to_discard_and_interrupt(
             game,
             action_name="play_sly_deal",
             hand_index=self.hand_index,
-            expected=ActionCardType.SLY_DEAL,
+            action_type=ActionCardType.SLY_DEAL,
             pending=SlyDealPending(
                 actor_idx=actor_idx,
                 steal=self._build_intent(game),
@@ -86,5 +86,5 @@ class PlaySlyDeal:
                     actor_idx=actor_idx,
                 ),
             ),
+            acting_player_idx=self.target_player_idx,
         )
-        game.acting_player_idx = self.target_player_idx

@@ -20,6 +20,7 @@ from .commands import (
     PlayMoneyFromHand,
     PlayPassGo,
     PlayPropertyFromHand,
+    PlayDoubleRent,
     PlayRent,
     PlaySlyDeal,
     draw_for_current_player,
@@ -120,6 +121,20 @@ class Game(GameView):
     def play_rent(self, hand_index: int, victim_idx: int, charged_color: Color) -> None:
         """Play a rent card from hand and charge the victim for ``charged_color`` on their board."""
         self.apply(PlayRent(hand_index, victim_idx, charged_color))
+
+    def play_double_rent(
+        self,
+        double_rent_hand_index: int,
+        rent_hand_index: int,
+        victim_idx: int,
+        charged_color: Color,
+    ) -> None:
+        """Play Double the Rent and a rent card (two plays); charge double the normal rent."""
+        self.apply(
+            PlayDoubleRent(
+                double_rent_hand_index, rent_hand_index, victim_idx, charged_color
+            )
+        )
 
     def pay_debt(
         self,

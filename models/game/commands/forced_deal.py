@@ -7,9 +7,9 @@ from ..pending import ForcedDealPending, ForcedDealSwapIntent, JustSayNoNegotiat
 from .base import (
     GameView,
     player_at,
-    play_action_to_discard_and_interrupt,
     require_hand_action,
     require_main_phase_hand_play,
+    spend_to_discard_and_interrupt,
 )
 
 
@@ -84,11 +84,11 @@ class PlayForcedDeal:
     def apply(self, game: GameView) -> None:
         self.validate(game)
         actor_idx = game.current_player_idx
-        play_action_to_discard_and_interrupt(
+        spend_to_discard_and_interrupt(
             game,
             action_name="play_forced_deal",
             hand_index=self.hand_index,
-            expected=ActionCardType.FORCED_DEAL,
+            action_type=ActionCardType.FORCED_DEAL,
             pending=ForcedDealPending(
                 actor_idx=actor_idx,
                 swap=self._build_intent(game),
@@ -97,5 +97,5 @@ class PlayForcedDeal:
                     actor_idx=actor_idx,
                 ),
             ),
+            acting_player_idx=self.target_player_idx,
         )
-        game.acting_player_idx = self.target_player_idx

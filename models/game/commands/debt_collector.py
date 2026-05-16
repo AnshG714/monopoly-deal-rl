@@ -7,10 +7,10 @@ from ..pending import PaymentDue
 from .base import (
     GameView,
     open_payment,
-    play_action_to_discard,
     player_at,
     require_hand_action,
     require_main_phase_hand_play,
+    spend_to_discard,
 )
 
 DEBT_COLLECTOR_PAYMENT_M = 5
@@ -35,11 +35,11 @@ class PlayDebtCollector:
 
     def apply(self, game: GameView) -> None:
         self.validate(game)
-        play_action_to_discard(
+        spend_to_discard(
             game,
-            action_name="play_debt_collector",
-            hand_index=self.hand_index,
-            expected=ActionCardType.DEBT_COLLECTOR,
+            "play_debt_collector",
+            self.hand_index,
+            action_type=ActionCardType.DEBT_COLLECTOR,
         )
         creditor = game.current_player_idx
         open_payment(

@@ -7,9 +7,9 @@ from ..pending import PaymentDue
 from .base import (
     GameView,
     open_payment,
-    play_action_to_discard,
     require_hand_action,
     require_main_phase_hand_play,
+    spend_to_discard,
 )
 
 BIRTHDAY_GIFT_M = 2
@@ -39,11 +39,11 @@ class PlayItsMyBirthday:
 
     def apply(self, game: GameView) -> None:
         self.validate(game)
-        play_action_to_discard(
+        spend_to_discard(
             game,
-            action_name="play_its_my_birthday",
-            hand_index=self.hand_index,
-            expected=ActionCardType.ITS_MY_BIRTHDAY,
+            "play_its_my_birthday",
+            self.hand_index,
+            action_type=ActionCardType.ITS_MY_BIRTHDAY,
         )
         others = [i for i in range(len(game.players)) if i != game.current_player_idx]
 

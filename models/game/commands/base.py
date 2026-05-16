@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from ...cards.action import ActionCard, ActionCardType
-from ...cards.base import Card
+from ...cards.base import Card, CardType
 from ...player import Player
 from ..pending import (
     DealBreakerPending,
@@ -84,8 +84,15 @@ def require_main_phase(game: GameView, action: str) -> None:
 
 def require_main_phase_hand_play(game: GameView, action: str) -> None:
     """Require a main-phase hand play with plays remaining this turn."""
+    require_main_phase_hand_plays(game, action, 1)
+
+
+def require_main_phase_hand_plays(game: GameView, action: str, plays: int) -> None:
+    """Require enough main-phase play budget for ``plays`` cards from hand."""
     require_main_phase(game, action)
-    if game.plays_this_turn >= MAX_PLAYS_PER_TURN:
+    if plays < 1:
+        raise ValueError("plays must be at least 1")
+    if game.plays_this_turn + plays > MAX_PLAYS_PER_TURN:
         raise RuntimeError("Already played max cards this turn")
 
 
@@ -114,18 +121,23 @@ def require_no_pending(game: GameView, message: str) -> None:
         raise RuntimeError(message)
 
 
-def open_payment(game: GameView, due: PaymentDue) -> None:
-    """Set ``game.pending`` to a payment owed from debtor to creditor.
-
-    Used by action cards that charge money (rent, Debt Collector, It's My
-    Birthday, etc.). Clears any prior prompt must be done by the caller via
-    ``require_no_pending`` first.
-    """
+def open_interrupt(
+    game: GameView,
+    pending: Pending,
+    *,
+    acting_player_idx: int,
+) -> None:
+    """Attach a prompt and set who must respond next."""
     require_no_pending(game, "A prompt is already pending")
+    game.pending = pending
+    game.acting_player_idx = acting_player_idx
+
+
+def open_payment(game: GameView, due: PaymentDue) -> None:
+    """Open a payment prompt; the debtor must pay or Just Say No."""
     if due.amount_m <= 0:
         raise ValueError("amount_m must be positive")
-    game.pending = due
-    game.acting_player_idx = due.debtor_idx
+    open_interrupt(game, due, acting_player_idx=due.debtor_idx)
 
 
 def require_deal_jsn_prompt(
@@ -172,21 +184,35 @@ def require_jsn_responder_matches_acting(
     return responder_idx
 
 
-def require_hand_action(
-    game: GameView, player_idx: int, hand_index: int, expected: ActionCardType
-) -> ActionCard:
-    """Return the expected action card from a player's hand.
-
-    Raises ``IndexError`` if ``hand_index`` is outside the hand and
-    ``TypeError`` if that card is not the requested action type.
-    """
+def require_hand_card(
+    game: GameView,
+    player_idx: int,
+    hand_index: int,
+    *,
+    action_type: ActionCardType | None = None,
+    card_type: CardType | None = None,
+) -> Card:
+    """Return a hand card, optionally constrained by action or card type."""
     player = game.players[player_idx]
     if hand_index < 0 or hand_index >= len(player.hand):
         raise IndexError("hand_index out of range")
     card = player.hand[hand_index]
-    if not isinstance(card, ActionCard) or card.action_type != expected:
-        raise TypeError(f"Card must be a {expected.value} action card")
+    if card_type is not None and card.type != card_type:
+        raise TypeError(f"Card must be a {card_type.value} card")
+    if action_type is not None:
+        if not isinstance(card, ActionCard) or card.action_type != action_type:
+            raise TypeError(f"Card must be a {action_type.value} action card")
     return card
+
+
+def require_hand_action(
+    game: GameView, player_idx: int, hand_index: int, expected: ActionCardType
+) -> ActionCard:
+    """Return the expected action card from a player's hand."""
+    card = require_hand_card(
+        game, player_idx, hand_index, action_type=expected
+    )
+    return card  # narrowed by action_type check
 
 
 def player_at(game: GameView, idx: int) -> Player:
@@ -196,21 +222,68 @@ def player_at(game: GameView, idx: int) -> Player:
     return game.players[idx]
 
 
-def pop_hand_action(
-    game: GameView, player_idx: int, hand_index: int, expected: ActionCardType
-) -> ActionCard:
-    """Remove and return an expected action card from a player's hand."""
-    card = require_hand_action(game, player_idx, hand_index, expected)
+def pop_from_hand(
+    game: GameView,
+    player_idx: int,
+    hand_index: int,
+    *,
+    action_type: ActionCardType | None = None,
+    card_type: CardType | None = None,
+) -> Card:
+    """Remove and return a card from hand, with optional type checks."""
+    card = require_hand_card(
+        game, player_idx, hand_index, action_type=action_type, card_type=card_type
+    )
     game.players[player_idx].hand.pop(hand_index)
     return card
 
 
-def pop_hand_card(game: GameView, player_idx: int, hand_index: int) -> Card:
-    """Remove and return any card from a player's hand by index."""
+def discard_from_hand(
+    game: GameView,
+    player_idx: int,
+    hand_index: int,
+    *,
+    action_type: ActionCardType | None = None,
+    card_type: CardType | None = None,
+) -> Card:
+    """Remove a card from hand and move it to the discard pile."""
+    card = pop_from_hand(
+        game,
+        player_idx,
+        hand_index,
+        action_type=action_type,
+        card_type=card_type,
+    )
+    game.discard_pile.append(card)
+    return card
+
+
+def discard_from_hand_indices(
+    game: GameView, player_idx: int, *hand_indices: int
+) -> tuple[Card, ...]:
+    """Remove several hand cards (by index) and discard them.
+
+    Indices must be distinct. Cards are returned in the same order as
+    ``hand_indices``. Pops higher indices first so lower indices stay valid.
+    """
+    if len(hand_indices) < 1:
+        raise ValueError("hand_indices must not be empty")
+    if len(set(hand_indices)) != len(hand_indices):
+        raise ValueError("hand_indices must be distinct")
     player = game.players[player_idx]
-    if hand_index < 0 or hand_index >= len(player.hand):
+    if max(hand_indices) >= len(player.hand) or min(hand_indices) < 0:
         raise IndexError("hand_index out of range")
-    return player.hand.pop(hand_index)
+    order = sorted(hand_indices, reverse=True)
+    popped: dict[int, Card] = {}
+    for idx in order:
+        popped[idx] = player.hand.pop(idx)
+        game.discard_pile.append(popped[idx])
+    return tuple(popped[i] for i in hand_indices)
+
+
+def record_hand_plays(game: GameView, plays: int) -> None:
+    """Increment the current turn's play count after card(s) left hand."""
+    game.plays_this_turn += plays
 
 
 def clear_pending_back_to_turn(game: GameView) -> None:
@@ -248,54 +321,59 @@ def draw_for_current_player(game: GameView, n: int) -> int:
     return draw_for_player(game, game.current_player_idx, n)
 
 
-def play_action_to_discard(
+def spend_to_discard(
     game: GameView,
-    *,
     action_name: str,
     hand_index: int,
-    expected: ActionCardType,
-) -> ActionCard:
-    """Spend a main-phase action card and move it from hand to discard."""
-    require_main_phase_hand_play(game, action_name)
-    card = pop_hand_action(game, game.current_player_idx, hand_index, expected)
-    game.discard_pile.append(card)
-    game.plays_this_turn += 1
-    return card
-
-
-def play_hand_card_to_discard(
-    game: GameView,
     *,
-    action_name: str,
-    hand_index: int,
+    plays: int = 1,
+    action_type: ActionCardType | None = None,
+    card_type: CardType | None = None,
 ) -> Card:
-    """Spend a main-phase hand card and move it to discard (counts as one play).
-
-    Same lifecycle as ``play_action_to_discard``, but without an ``ActionCardType``
-    check. Use for rent and other non-action hand cards; action cards should use
-    ``play_action_to_discard`` instead.
-    """
-    require_main_phase_hand_play(game, action_name)
-    card = pop_hand_card(game, game.current_player_idx, hand_index)
-    game.discard_pile.append(card)
-    game.plays_this_turn += 1
+    """Spend main-phase play budget, discard one card from the current player's hand."""
+    require_main_phase_hand_plays(game, action_name, plays)
+    card = discard_from_hand(
+        game,
+        game.current_player_idx,
+        hand_index,
+        action_type=action_type,
+        card_type=card_type,
+    )
+    record_hand_plays(game, plays)
     return card
 
 
-def play_action_to_discard_and_interrupt(
+def spend_to_discard_indices(
+    game: GameView,
+    action_name: str,
+    hand_indices: tuple[int, ...],
+    *,
+    plays: int,
+) -> tuple[Card, ...]:
+    """Spend play budget and discard several cards from the current player's hand."""
+    require_main_phase_hand_plays(game, action_name, plays)
+    cards = discard_from_hand_indices(game, game.current_player_idx, *hand_indices)
+    record_hand_plays(game, plays)
+    return cards
+
+
+def spend_to_discard_and_interrupt(
     game: GameView,
     *,
     action_name: str,
     hand_index: int,
-    expected: ActionCardType,
-    pending: DealInterrupt,
-) -> None:
-    """Spend a hand action card, discard it, and open a deal interrupt.
-
-    This helper is for targeted action cards that first declare intent and then
-    wait for a Just Say No response before resolving.
-    """
-    play_action_to_discard(
-        game, action_name=action_name, hand_index=hand_index, expected=expected
+    action_type: ActionCardType,
+    pending: Pending,
+    acting_player_idx: int,
+    plays: int = 1,
+) -> Card:
+    """Discard an action card from hand, count play(s), and open an interrupt."""
+    card = spend_to_discard(
+        game,
+        action_name,
+        hand_index,
+        plays=plays,
+        action_type=action_type,
     )
-    game.pending = pending
+    open_interrupt(game, pending, acting_player_idx=acting_player_idx)
+    return card

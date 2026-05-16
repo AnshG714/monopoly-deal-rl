@@ -12,7 +12,7 @@ from .base import (
     GameView,
     clear_pending_back_to_turn,
     jsn_flip_after_play,
-    pop_hand_action,
+    discard_from_hand,
     require_acting,
     require_deal_jsn_prompt,
     require_hand_action,
@@ -25,8 +25,9 @@ from .effects import resolve_deal_interrupt
 def _pop_just_say_no_from_hand(
     game: GameView, player_idx: int, hand_index: int
 ) -> None:
-    card = pop_hand_action(game, player_idx, hand_index, ActionCardType.JUST_SAY_NO)
-    game.discard_pile.append(card)
+    discard_from_hand(
+        game, player_idx, hand_index, action_type=ActionCardType.JUST_SAY_NO
+    )
 
 
 @dataclass(frozen=True)
