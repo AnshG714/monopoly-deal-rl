@@ -88,8 +88,17 @@ class PayDebt:
             creditor.money_pile.append(card)
 
         for set_idx, card_idx in self._selected_property_indices():
-            color = debtor.pile_at(set_idx).color
+            pile = debtor.pile_at(set_idx)
+            color = pile.color
+            breaks_complete_set = pile.is_complete()
             card = debtor.take_property_card_at(set_idx, card_idx)
+            if breaks_complete_set:
+                hotel = pile.pop_hotel()
+                house = pile.pop_house()
+                if hotel is not None:
+                    debtor.money_pile.append(hotel)
+                if house is not None:
+                    debtor.money_pile.append(house)
             creditor.add_property_to_board(card, color)
         clear_pending_back_to_turn(game)
 

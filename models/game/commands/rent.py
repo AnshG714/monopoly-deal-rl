@@ -42,7 +42,7 @@ def rent_m_due_for_color(creditor: Player, color: Color) -> int:
         if rents is None:
             return 0
         idx = min(n, len(rents)) - 1
-        return rents[idx]
+        return rents[idx] + pile.building_bonus_m()
     return 0
 
 

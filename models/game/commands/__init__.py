@@ -9,6 +9,7 @@ from .discard_cards import DiscardCards
 from .deal_breaker import PlayDealBreaker
 from .debt_collector import PlayDebtCollector
 from .forced_deal import PlayForcedDeal
+from .house_hotel import PlayHotel, PlayHouse
 from .its_my_birthday import PlayItsMyBirthday
 from .just_say_no import PassJustSayNo, PlayJustSayNo
 from .money import PayDebt, PlayMoneyFromHand
@@ -25,6 +26,8 @@ __all__ = [
     "PlayDealBreaker",
     "PlayDebtCollector",
     "PlayForcedDeal",
+    "PlayHotel",
+    "PlayHouse",
     "PlayItsMyBirthday",
     "PlayJustSayNo",
     "PlayMoneyFromHand",

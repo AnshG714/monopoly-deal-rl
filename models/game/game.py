@@ -15,6 +15,8 @@ from .commands import (
     PlayDealBreaker,
     PlayDebtCollector,
     PlayForcedDeal,
+    PlayHotel,
+    PlayHouse,
     PlayItsMyBirthday,
     PlayJustSayNo,
     PlayMoneyFromHand,
@@ -109,6 +111,14 @@ class Game(GameView):
     def play_property_from_hand(self, hand_index: int, into_color: Color) -> None:
         """Play a property or property-wild from hand into a pile for ``into_color``."""
         self.apply(PlayPropertyFromHand(hand_index, into_color))
+
+    def play_house(self, hand_index: int, target_set_idx: int) -> None:
+        """Play House from hand onto one of your complete non-utility/non-railroad sets."""
+        self.apply(PlayHouse(hand_index, target_set_idx))
+
+    def play_hotel(self, hand_index: int, target_set_idx: int) -> None:
+        """Play Hotel from hand onto one of your complete sets with an existing house."""
+        self.apply(PlayHotel(hand_index, target_set_idx))
 
     def play_debt_collector(self, hand_index: int, target_player_idx: int) -> None:
         """Force another player to pay you $5M (they may Just Say No)."""

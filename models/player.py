@@ -38,8 +38,27 @@ class Player:
 
     def merge_property_set(self, prop_set: PropertySet) -> None:
         """Attach every card from ``prop_set`` onto the board, merging by pile color."""
+        target: PropertySet | None = None
+        for pile in self.property_sets:
+            if pile.color == prop_set.color:
+                target = pile
+                break
+        if target is None:
+            target = PropertySet(prop_set.color)
+            self.property_sets.append(target)
+
         for card in list(prop_set.cards):
-            self.add_property_to_board(card, prop_set.color)
+            target.add(card)
+        if prop_set.house is not None:
+            if target.has_house():
+                self.money_pile.append(prop_set.house)
+            else:
+                target.attach_house(prop_set.house)
+        if prop_set.hotel is not None:
+            if target.has_hotel():
+                self.money_pile.append(prop_set.hotel)
+            else:
+                target.attach_hotel(prop_set.hotel)
 
     def play_property(self, card: PropertyCard, color: Color) -> None:
         """Play a property card from hand to a set of the given color."""
@@ -101,6 +120,16 @@ class Player:
 
     def did_win(self) -> bool:
         return self.complete_set_count() >= SETS_TO_WIN
+
+    def move_buildings_to_money_pile(self, set_idx: int) -> None:
+        """Move attached house/hotel from a set into this player's money pile."""
+        pile = self.pile_at(set_idx)
+        hotel = pile.pop_hotel()
+        house = pile.pop_house()
+        if hotel is not None:
+            self.money_pile.append(hotel)
+        if house is not None:
+            self.money_pile.append(house)
 
     def _drop_empty_pile_at(self, set_idx: int) -> None:
         if set_idx < len(self.property_sets) and not self.property_sets[set_idx].cards:

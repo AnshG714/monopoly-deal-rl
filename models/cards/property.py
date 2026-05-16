@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 
+from .action import ActionCard, ActionCardType
 from .base import Card, CardType
 
 
@@ -95,6 +96,8 @@ class PropertySet:
     def __init__(self, color: Color):
         self.color = color
         self.cards: list[PropertyCard] = []
+        self.house: ActionCard | None = None
+        self.hotel: ActionCard | None = None
 
     def add(self, card: PropertyCard) -> None:
         if not card.can_count_as(self.color):
@@ -113,3 +116,37 @@ class PropertySet:
 
     def is_complete(self) -> bool:
         return len(self.cards) == CARDS_IN_SET_FOR_COLOR[self.color]
+
+    def has_house(self) -> bool:
+        return self.house is not None
+
+    def has_hotel(self) -> bool:
+        return self.hotel is not None
+
+    def attach_house(self, card: ActionCard) -> None:
+        if card.action_type != ActionCardType.HOUSE:
+            raise TypeError("Expected a house action card")
+        self.house = card
+
+    def attach_hotel(self, card: ActionCard) -> None:
+        if card.action_type != ActionCardType.HOTEL:
+            raise TypeError("Expected a hotel action card")
+        self.hotel = card
+
+    def pop_house(self) -> ActionCard | None:
+        card = self.house
+        self.house = None
+        return card
+
+    def pop_hotel(self) -> ActionCard | None:
+        card = self.hotel
+        self.hotel = None
+        return card
+
+    def building_bonus_m(self) -> int:
+        bonus = 0
+        if self.house is not None:
+            bonus += self.house.value
+        if self.hotel is not None:
+            bonus += self.hotel.value
+        return bonus
