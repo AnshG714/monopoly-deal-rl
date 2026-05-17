@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from ...cards.action import ActionCardType
 from ..pending import ForcedDealPending, ForcedDealSwapIntent, JustSayNoNegotiation
 from .base import (
+    GameCommand,
     GameView,
     player_at,
     require_hand_action,
@@ -27,7 +28,7 @@ def resolve_forced_deal(game: GameView, pending: ForcedDealPending) -> None:
 
 
 @dataclass(frozen=True)
-class PlayForcedDeal:
+class PlayForcedDeal(GameCommand):
     hand_index: int
     target_player_idx: int
     my_set_idx: int

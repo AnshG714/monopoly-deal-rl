@@ -9,6 +9,7 @@ from ...cards.rent import RentCard, WildRentCard
 from ...player import Player
 from ..pending import PaymentDue
 from .base import (
+    GameCommand,
     GameView,
     open_payment,
     require_hand_card,
@@ -80,7 +81,7 @@ def _validate_rent_charge(
 
 
 @dataclass(frozen=True)
-class PlayRent:
+class PlayRent(GameCommand):
     """Play a rent card from hand and charge the victim for one of their property colors."""
 
     hand_index: int
@@ -116,7 +117,7 @@ class PlayRent:
 
 
 @dataclass(frozen=True)
-class PlayDoubleRent:
+class PlayDoubleRent(GameCommand):
     """Play Double the Rent and a rent card together (counts as two plays; doubles rent owed)."""
 
     double_rent_hand_index: int

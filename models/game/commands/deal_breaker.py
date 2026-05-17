@@ -10,6 +10,7 @@ from ..pending import (
     JustSayNoNegotiation,
 )
 from .base import (
+    GameCommand,
     GameView,
     player_at,
     require_hand_action,
@@ -31,7 +32,7 @@ def resolve_deal_breaker(game: GameView, pending: DealBreakerPending) -> None:
 
 
 @dataclass(frozen=True)
-class PlayDealBreaker:
+class PlayDealBreaker(GameCommand):
     hand_index: int
     victim_idx: int
     victim_set_idx: int

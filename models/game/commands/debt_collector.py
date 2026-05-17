@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from ...cards.action import ActionCardType
 from ..pending import PaymentDue
 from .base import (
+    GameCommand,
     GameView,
     open_payment,
     player_at,
@@ -17,7 +18,7 @@ DEBT_COLLECTOR_PAYMENT_M = 5
 
 
 @dataclass(frozen=True)
-class PlayDebtCollector:
+class PlayDebtCollector(GameCommand):
     hand_index: int
     target_player_idx: int
 

@@ -6,7 +6,7 @@ from .base import (
     require_no_pending,
     MAX_PLAYS_PER_TURN,
 )
-from .discard_cards import DiscardCards, excess_hand_count
+from .discard_cards import DiscardCards
 from .end_turn import (
     CARDS_DRAWN_AT_TURN_START,
     EndTurn,
@@ -46,7 +46,6 @@ __all__ = [
     "PlayRent",
     "PlaySlyDeal",
     "DiscardCards",
-    "excess_hand_count",
     "EndTurn",
     "CARDS_DRAWN_AT_TURN_START",
     "INITIAL_HAND_SIZE",

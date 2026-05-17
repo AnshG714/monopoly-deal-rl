@@ -9,6 +9,7 @@ from ..pending import (
     jsn_responder_player_idx,
 )
 from .base import (
+    GameCommand,
     GameView,
     clear_pending_back_to_turn,
     jsn_flip_after_play,
@@ -31,7 +32,7 @@ def _pop_just_say_no_from_hand(
 
 
 @dataclass(frozen=True)
-class PlayJustSayNo:
+class PlayJustSayNo(GameCommand):
     hand_index: int
 
     def validate(self, game: GameView) -> None:
@@ -98,7 +99,7 @@ class PlayJustSayNo:
 
 
 @dataclass(frozen=True)
-class PassJustSayNo:
+class PassJustSayNo(GameCommand):
     def validate(self, game: GameView) -> None:
         pending = require_interrupt(game)
         if isinstance(pending, PaymentDue):

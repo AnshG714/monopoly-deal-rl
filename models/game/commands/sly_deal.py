@@ -6,6 +6,7 @@ from ...cards.action import ActionCardType
 from ...cards.property import Color
 from ..pending import JustSayNoNegotiation, SlyDealPending, SlyDealStealIntent
 from .base import (
+    GameCommand,
     GameView,
     player_at,
     require_hand_action,
@@ -34,7 +35,7 @@ def resolve_sly_deal(game: GameView, pending: SlyDealPending) -> None:
 
 
 @dataclass(frozen=True)
-class PlaySlyDeal:
+class PlaySlyDeal(GameCommand):
     hand_index: int
     target_player_idx: int
     target_set_idx: int

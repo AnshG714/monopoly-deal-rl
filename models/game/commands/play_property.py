@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ...cards.property import Color, PropertyCard, PropertySet
-from .base import GameView, require_main_phase_hand_play
+from .base import GameCommand, GameView, require_main_phase_hand_play
 
 
 def _pile_for_color(game: GameView, color: Color) -> PropertySet | None:
@@ -15,7 +15,7 @@ def _pile_for_color(game: GameView, color: Color) -> PropertySet | None:
 
 
 @dataclass(frozen=True)
-class PlayPropertyFromHand:
+class PlayPropertyFromHand(GameCommand):
     """Play a property (or property-wild) from hand onto the board in one pile color.
 
     ``into_color`` is the table pile to build toward. It must be legal for the card

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .base import GameView, require_main_phase
+from .base import GameCommand, GameView, require_main_phase
 from .end_turn import MAX_HAND_SIZE_AT_END_OF_TURN
 
 
 @dataclass(frozen=True)
-class DiscardCards:
+class DiscardCards(GameCommand):
     """Discard exactly the excess cards over the end-of-turn hand limit (7)."""
 
     hand_indices: list[int]

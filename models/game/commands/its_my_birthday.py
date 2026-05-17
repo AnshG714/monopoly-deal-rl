@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from ...cards.action import ActionCardType
 from ..pending import PaymentDue
 from .base import (
+    GameCommand,
     GameView,
     open_payment,
     require_hand_action,
@@ -16,7 +17,7 @@ BIRTHDAY_GIFT_M = 2
 
 
 @dataclass(frozen=True)
-class PlayItsMyBirthday:
+class PlayItsMyBirthday(GameCommand):
     """All other players owe you $2M each.
 
     With the current single ``PaymentDue`` model, only the first opponent's debt

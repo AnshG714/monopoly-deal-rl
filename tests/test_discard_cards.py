@@ -3,17 +3,10 @@ from __future__ import annotations
 import unittest
 
 from models.cards.money import MoneyCard
-from models.game.commands.discard_cards import DiscardCards, excess_hand_count
-from models.game.commands.end_turn import EndTurn
 from models.game.game import Game
 
 
 class DiscardCardsTests(unittest.TestCase):
-    def test_excess_hand_count(self) -> None:
-        self.assertEqual(excess_hand_count(7), 0)
-        self.assertEqual(excess_hand_count(8), 1)
-        self.assertEqual(excess_hand_count(10), 3)
-
     def test_discard_exact_excess(self) -> None:
         game = Game()
         game.players[0].hand = [MoneyCard(1)] * 8

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .base import (
+    GameCommand,
     GameView,
     draw_for_current_player,
     require_main_phase,
@@ -23,7 +24,7 @@ def start_player_turn(game: GameView) -> None:
 
 
 @dataclass(frozen=True)
-class EndTurn:
+class EndTurn(GameCommand):
     def validate(self, game: GameView) -> None:
         require_main_phase(game, "end_turn")
         if len(game.current_player().hand) > MAX_HAND_SIZE_AT_END_OF_TURN:

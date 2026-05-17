@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from ...cards.action import ActionCardType
 from .base import (
+    GameCommand,
     GameView,
     draw_for_current_player,
     require_hand_action,
@@ -15,7 +16,7 @@ CARDS_DRAWN_BY_PASS_GO = 2
 
 
 @dataclass(frozen=True)
-class PlayPassGo:
+class PlayPassGo(GameCommand):
     hand_index: int
 
     def validate(self, game: GameView) -> None:

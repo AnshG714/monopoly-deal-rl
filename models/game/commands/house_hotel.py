@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from ...cards.action import ActionCardType
 from ...cards.property import Color
 from .base import (
+    GameCommand,
     GameView,
     pop_from_hand,
     record_hand_plays,
@@ -19,7 +20,7 @@ def _validate_build_target(color: Color) -> None:
 
 
 @dataclass(frozen=True)
-class PlayHouse:
+class PlayHouse(GameCommand):
     hand_index: int
     target_set_idx: int
 
@@ -49,7 +50,7 @@ class PlayHouse:
 
 
 @dataclass(frozen=True)
-class PlayHotel:
+class PlayHotel(GameCommand):
     hand_index: int
     target_set_idx: int
 

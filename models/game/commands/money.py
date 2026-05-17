@@ -6,6 +6,7 @@ from ...cards.property import PropertyCard
 from ...player import Player
 from ..pending import jsn_responder_player_idx
 from .base import (
+    GameCommand,
     GameView,
     clear_pending_back_to_turn,
     require_acting,
@@ -15,7 +16,7 @@ from .base import (
 
 
 @dataclass(frozen=True)
-class PlayMoneyFromHand:
+class PlayMoneyFromHand(GameCommand):
     hand_index: int
 
     def validate(self, game: GameView) -> None:
@@ -35,7 +36,7 @@ class PlayMoneyFromHand:
 
 
 @dataclass(frozen=True)
-class PayDebt:
+class PayDebt(GameCommand):
     money_pile_indices: list[int]
     property_card_indices: list[tuple[int, int]] = field(default_factory=list)
 
