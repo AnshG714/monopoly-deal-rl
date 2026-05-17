@@ -7,8 +7,10 @@ from ..cards.property import Color
 from ..cards.registry import build_full_deck
 from ..player import Player
 from .commands import (
+    EndTurn,
     GameCommand,
     GameView,
+    INITIAL_HAND_SIZE,
     DiscardCards,
     PassJustSayNo,
     PayDebt,
@@ -25,21 +27,16 @@ from .commands import (
     PlayDoubleRent,
     PlayRent,
     PlaySlyDeal,
-    draw_for_current_player,
-    require_no_pending,
+    start_player_turn,
 )
-from .pending import PaymentDue, Pending
-
-CARDS_DRAWN_AT_TURN_START = 2
-INITIAL_HAND_SIZE = 5
-MAX_HAND_SIZE_AT_END_OF_TURN = 7
+from .pending import Pending
 
 
 class Game(GameView):
     """
     Turn flow (main phase):
       - ``begin_turn()`` draws two cards for the current player (not an agent action).
-      - The current player may play up to ``MAX_PLAYS_PER_TURN`` cards from hand, then ``end_turn()``.
+      - The current player may play up to ``MAX_PLAYS_PER_TURN`` cards from hand, then ``EndTurn``.
 
     Interrupts:
       - ``pending`` holds who must respond (e.g. pay rent, Just Say No window).
@@ -75,26 +72,11 @@ class Game(GameView):
         self.begin_turn()
 
     def begin_turn(self) -> None:
-        require_no_pending(self, "Cannot begin turn while a prompt is pending")
-        self.plays_this_turn = 0
-        self.acting_player_idx = self.current_player_idx
-        draw_for_current_player(self, CARDS_DRAWN_AT_TURN_START)
+        start_player_turn(self)
 
     def end_turn(self) -> None:
-        require_no_pending(self, "Resolve pending prompt before ending turn")
-        if len(self.current_player().hand) > MAX_HAND_SIZE_AT_END_OF_TURN:
-            raise ValueError(
-                "Player has too many cards in hand at end of turn. Needs to discard some cards."
-            )
-
-        # If the player ends a turn with 0 cards, they get a fresh deal of 5.
-        if len(self.current_player().hand) == 0:
-            for _ in range(INITIAL_HAND_SIZE):
-                self.current_player().deal_to_hand(self.deck.pop())
-
-        n = len(self.players)
-        self.current_player_idx = (self.current_player_idx + 1) % n
-        self.begin_turn()
+        """End the current player's turn and start the next player's turn."""
+        self.apply(EndTurn())
 
     def apply(self, command: GameCommand) -> None:
         """Apply a player-facing command after its own legality check."""
