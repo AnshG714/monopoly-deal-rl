@@ -4,8 +4,9 @@ from .base import (
     draw_for_current_player,
     open_payment,
     require_no_pending,
+    MAX_PLAYS_PER_TURN,
 )
-from .discard_cards import DiscardCards
+from .discard_cards import DiscardCards, excess_hand_count
 from .end_turn import (
     CARDS_DRAWN_AT_TURN_START,
     EndTurn,
@@ -28,6 +29,7 @@ from .sly_deal import PlaySlyDeal
 __all__ = [
     "GameCommand",
     "GameView",
+    "MAX_PLAYS_PER_TURN",
     "PassJustSayNo",
     "PayDebt",
     "PlayDealBreaker",
@@ -44,6 +46,7 @@ __all__ = [
     "PlayRent",
     "PlaySlyDeal",
     "DiscardCards",
+    "excess_hand_count",
     "EndTurn",
     "CARDS_DRAWN_AT_TURN_START",
     "INITIAL_HAND_SIZE",

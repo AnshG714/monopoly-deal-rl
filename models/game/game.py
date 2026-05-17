@@ -11,6 +11,7 @@ from .commands import (
     GameCommand,
     GameView,
     INITIAL_HAND_SIZE,
+    MAX_PLAYS_PER_TURN,
     DiscardCards,
     PassJustSayNo,
     PayDebt,
@@ -196,8 +197,12 @@ class Game(GameView):
         self.apply(PlayDealBreaker(hand_index, victim_idx, victim_set_idx))
 
     def discard_cards(self, hand_indices: list[int]) -> None:
-        """Discard cards from hand back into the deck."""
+        """Discard excess cards (down to 7) at end of turn; does not use a play."""
         self.apply(DiscardCards(hand_indices))
 
     def current_player(self) -> Player:
         return self.players[self.current_player_idx]
+
+    def get_valid_commands_for_current_player(self) -> list[GameCommand]:
+        """Get a list of valid commands for the current player."""
+        pass
