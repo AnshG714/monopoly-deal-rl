@@ -30,6 +30,7 @@ from .commands import (
     PlaySlyDeal,
     start_player_turn,
 )
+from .legal_moves import legal_moves
 from .pending import Pending
 
 
@@ -203,6 +204,6 @@ class Game(GameView):
     def current_player(self) -> Player:
         return self.players[self.current_player_idx]
 
-    def get_valid_commands_for_current_player(self) -> list[GameCommand]:
-        """Get a list of valid commands for the current player."""
-        pass
+    def legal_moves(self) -> list[GameCommand]:
+        """All legal commands for ``acting_player_idx`` (whoever must act now)."""
+        return legal_moves(self)

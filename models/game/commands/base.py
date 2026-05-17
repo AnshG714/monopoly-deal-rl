@@ -209,9 +209,7 @@ def require_hand_action(
     game: GameView, player_idx: int, hand_index: int, expected: ActionCardType
 ) -> ActionCard:
     """Return the expected action card from a player's hand."""
-    card = require_hand_card(
-        game, player_idx, hand_index, action_type=expected
-    )
+    card = require_hand_card(game, player_idx, hand_index, action_type=expected)
     return card  # narrowed by action_type check
 
 

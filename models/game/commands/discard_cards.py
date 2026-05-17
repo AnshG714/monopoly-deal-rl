@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Self
 
+from ..combinatorics import combinations_of_indices
 from .base import GameCommand, GameView, require_main_phase
 from .end_turn import MAX_HAND_SIZE_AT_END_OF_TURN
 
@@ -38,3 +40,14 @@ class DiscardCards(GameCommand):
                 new_hand.append(card)
         game.shuffle_deck()
         game.current_player().hand = new_hand
+
+    @classmethod
+    def enumerate(cls, game: GameView) -> list[Self]:
+        hand_size = len(game.current_player().hand)
+        excess = hand_size - MAX_HAND_SIZE_AT_END_OF_TURN
+        if excess <= 0:
+            return []
+        return [
+            cls(combination)
+            for combination in combinations_of_indices(hand_size, excess)
+        ]
