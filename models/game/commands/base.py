@@ -13,6 +13,7 @@ card being played, then command-specific target legality:
 
 from __future__ import annotations
 
+import random
 from typing import Protocol
 
 from ...cards.action import ActionCard, ActionCardType
@@ -36,7 +37,7 @@ MAX_PLAYS_PER_TURN = 3
 class GameView(Protocol):
     """Minimum mutable game surface required by commands."""
 
-    _rng: object
+    _rng: random.Random
     players: list[Player]
     deck: list[Card]
     discard_pile: list[Card]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..cards.action import ActionCard, ActionCardType
-from ..cards.property import Color, PropertyCard
+from ..cards.property import Color, MultiColorProperty, PropertyCard, WildColorProperty
 from ..cards.rent import RentCard, WildRentCard
 from ..player import Player
 from .commands import (
@@ -22,6 +22,7 @@ from .commands import (
     PlayHouse,
     PlayItsMyBirthday,
     PlayJustSayNo,
+    MoveWildProperty,
     PlayMoneyFromHand,
     PlayPassGo,
     PlayPropertyFromHand,
@@ -107,11 +108,30 @@ def _legal_main_phase_moves(game: GameView) -> list[GameCommand]:
     moves: list[GameCommand] = []
     _append_if_legal(moves, EndTurn(), game)
     moves.extend(_enumerate_main_phase_hand_plays(game))
+    moves.extend(_enumerate_move_wild_property(game))
     return _dedupe_commands(moves)
 
 
 def _validated(candidates: list[GameCommand], game: GameView) -> list[GameCommand]:
     return [cmd for cmd in candidates if _try_validate(cmd, game)]
+
+
+def _enumerate_move_wild_property(game: GameView) -> list[GameCommand]:
+    moves: list[GameCommand] = []
+    player = game.current_player()
+    for set_idx, pile in enumerate(player.property_sets):
+        for card_idx, card in enumerate(pile.cards):
+            if not isinstance(card, (MultiColorProperty, WildColorProperty)):
+                continue
+            for color in Color:
+                if color == pile.color:
+                    continue
+                _append_if_legal(
+                    moves,
+                    MoveWildProperty(set_idx, card_idx, color),
+                    game,
+                )
+    return moves
 
 
 def _enumerate_main_phase_hand_plays(game: GameView) -> list[GameCommand]:

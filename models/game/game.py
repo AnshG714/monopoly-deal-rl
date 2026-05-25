@@ -11,7 +11,6 @@ from .commands import (
     GameCommand,
     GameView,
     INITIAL_HAND_SIZE,
-    MAX_PLAYS_PER_TURN,
     DiscardCards,
     PassJustSayNo,
     PayDebt,
@@ -22,6 +21,7 @@ from .commands import (
     PlayHouse,
     PlayItsMyBirthday,
     PlayJustSayNo,
+    MoveWildProperty,
     PlayMoneyFromHand,
     PlayPassGo,
     PlayPropertyFromHand,
@@ -95,6 +95,12 @@ class Game(GameView):
     def play_property_from_hand(self, hand_index: int, into_color: Color) -> None:
         """Play a property or property-wild from hand into a pile for ``into_color``."""
         self.apply(PlayPropertyFromHand(hand_index, into_color))
+
+    def move_wild_property(
+        self, from_set_idx: int, card_idx: int, into_color: Color
+    ) -> None:
+        """Move a board wild from one pile to another color pile (costs one play)."""
+        self.apply(MoveWildProperty(from_set_idx, card_idx, into_color))
 
     def play_house(self, hand_index: int, target_set_idx: int) -> None:
         """Play House from hand onto one of your complete non-utility/non-railroad sets."""
@@ -207,3 +213,12 @@ class Game(GameView):
     def legal_moves(self) -> list[GameCommand]:
         """All legal commands for ``acting_player_idx`` (whoever must act now)."""
         return legal_moves(self)
+
+    def is_over(self) -> bool:
+        return self.winner_idx() is not None
+
+    def winner_idx(self) -> int | None:
+        for i, player in enumerate(self.players):
+            if player.did_win():
+                return i
+        return None

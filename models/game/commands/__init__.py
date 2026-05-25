@@ -21,6 +21,7 @@ from .house_hotel import PlayHotel, PlayHouse
 from .its_my_birthday import PlayItsMyBirthday
 from .just_say_no import PassJustSayNo, PlayJustSayNo
 from .money import PayDebt, PlayMoneyFromHand
+from .move_wild_property import MoveWildProperty
 from .pass_go import PlayPassGo
 from .play_property import PlayPropertyFromHand
 from .rent import PlayDoubleRent, PlayRent
@@ -39,6 +40,7 @@ __all__ = [
     "PlayHouse",
     "PlayItsMyBirthday",
     "PlayJustSayNo",
+    "MoveWildProperty",
     "PlayMoneyFromHand",
     "PlayPassGo",
     "PlayPropertyFromHand",
