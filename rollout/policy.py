@@ -304,6 +304,9 @@ def _choose_defend_steal(
     jsn_moves = [m for m in moves if isinstance(m, PlayJustSayNo)]
     pass_moves = [m for m in moves if isinstance(m, PassJustSayNo)]
 
+    if isinstance(pending, DealBreakerPending) and jsn_moves:
+        return jsn_moves[0]
+
     if acting == defender_idx:
         if jsn_moves and side_wins_if_plays_jsn(
             d_jsn, a_jsn, jsn.responder, jsn.chain_started, side="defender"
@@ -320,16 +323,19 @@ def _choose_defend_steal(
     return moves[0]
 
 
+def _jsn_probability_for_amount(amount_m: int) -> float:
+    """Linear scale: 0% at 1M, 100% at 14M+."""
+    if amount_m >= 14:
+        return 1.0
+    if amount_m <= 1:
+        return 0.0
+    return (amount_m - 1) / 13
+
+
 def _debtor_should_jsn(game: Game, pending: PaymentDue) -> bool:
     if count_jsns(game.players[pending.debtor_idx]) == 0:
         return False
-    return side_wins_if_plays_jsn(
-        count_jsns(game.players[pending.debtor_idx]),
-        count_jsns(game.players[pending.creditor_idx]),
-        "defender",
-        False,
-        side="defender",
-    )
+    return game._rng.random() < _jsn_probability_for_amount(pending.amount_m)
 
 
 def _best_pay_debt(game: Game, moves: list[PayDebt]) -> PayDebt:

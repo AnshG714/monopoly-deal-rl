@@ -43,9 +43,6 @@ def rollout(
     raise RuntimeError(f"Hit step limit ({max_steps}) without a winner")
 
 
-# ── CLI helpers ──────────────────────────────────────────────────────────
-
-
 def _move_label(game: Game, move: object) -> str:
     """Human-readable label: command name + who is acting if it's an interrupt."""
     name = type(move).__name__
@@ -69,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Play one rollout game")
     parser.add_argument(
         "--seed",
+        "-s",
         type=int,
         default=None,
         help="RNG seed (default: random)",
@@ -79,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="print each move",
     )
-    parser.add_argument("--max-steps", type=int, default=DEFAULT_MAX_STEPS)
+    parser.add_argument("--max-steps", "-m", type=int, default=DEFAULT_MAX_STEPS)
     args = parser.parse_args(argv)
 
     seed = args.seed if args.seed is not None else secrets.randbelow(2**31)

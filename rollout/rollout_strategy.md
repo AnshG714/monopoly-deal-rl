@@ -95,3 +95,10 @@ Tie-break: prefer the move that gives up fewer property cards.
 ## Defending steals
 
 When a deal interrupt is pending (`SlyDealPending`, `ForcedDealPending`, or `DealBreakerPending`), **score each move in `legal_moves()`** and apply the best one. Counter with JSN if you win the chain; always do so against a Deal Breaker. Otherwise `PassJustSayNo`.
+
+## JSN realism tuning
+
+To create a more realistic opponent during rollouts, the policy does not always play JSN optimally based on chain math. Instead:
+
+- **Deal Breakers**: always counter with JSN from either side — losing a complete set is too costly to let through.
+- **Rent / debt**: JSN probability scales linearly with the charge amount, from 0% at 1M to 100% at 14M+. Small debts are cheaper to just pay off; large ones are worth burning a JSN. Once a chain is started, mid-chain decisions still follow optimal JSN-count logic.
