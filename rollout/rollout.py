@@ -26,13 +26,13 @@ def rollout(
     *,
     max_steps: int = DEFAULT_MAX_STEPS,
     on_step: StepCallback | None = None,
-) -> int:
+) -> dict:
     """Play ``game`` to completion using heuristic policy. Returns steps taken."""
     steps = 0
     while steps < max_steps:
         winner = game.winner_idx()
         if winner is not None:
-            return steps
+            return {"steps": steps, "winner": winner}
 
         move = choose_move(game)
         if on_step is not None:
@@ -95,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         print()
 
-    steps = rollout(
+    result = rollout(
         game,
         max_steps=args.max_steps,
         on_step=_verbose_step if args.verbose else None,
@@ -105,12 +105,8 @@ def main(argv: list[str] | None = None) -> int:
     winner = game.players[win].name if win is not None else "none"
     sets = [p.complete_set_count() for p in game.players]
     if args.verbose:
-        print(f"\n>>> {winner} wins ({win}) in {steps} steps")
+        print(f"\n>>> {winner} wins ({win}) in {result['steps']} steps")
     else:
-        print(f"seed={seed}  steps={steps}  winner={winner}  sets={sets}")
+        print(f"seed={seed}  steps={result['steps']}  winner={winner}  sets={sets}")
 
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
