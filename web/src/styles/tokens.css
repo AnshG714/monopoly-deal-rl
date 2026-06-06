@@ -1,0 +1,104 @@
+:root {
+  --color-page: #f4f4f2;
+  --color-text: #1f2933;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0efec;
+  --color-border: #e2e0dc;
+  --color-muted: #6b7280;
+  --color-accent: #2e7d4f;
+  --color-accent-strong: #225e3e;
+  --color-accent-soft: rgba(46, 125, 79, 0.22);
+  --color-table: #d4e4d4;
+  --color-table-dark: #bdd4bd;
+  --color-table-border: rgba(90, 120, 90, 0.35);
+  --color-info-bg: #e7f0ff;
+  --color-info-text: #1d4f91;
+  --color-info-strong: #1d4f91;
+  --color-hint-bg: #f0f4f8;
+  --color-hint-text: #475569;
+  --color-warning-bg: #f5f0eb;
+  --color-warning-text: #78350f;
+  --color-success-bg: #dcfce7;
+  --color-success-text: #166534;
+  --color-error-bg: #fee2e2;
+  --color-error-text: #991b1b;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --space-card-gap: 0.35rem;
+
+  --property-brown: #8b4513;
+  --property-light_blue: #87ceeb;
+  --property-pink: #ff69b4;
+  --property-orange: #ff8c00;
+  --property-red: #dc143c;
+  --property-yellow: #ffd700;
+  --property-green: #228b22;
+  --property-blue: #1d4ed8;
+  --property-railroad: #2f4f4f;
+  --property-utility: #708090;
+
+  /* Legacy aliases used by the current card renderer until it moves modules. */
+  --bg: var(--color-page);
+  --surface: var(--color-surface);
+  --border: var(--color-border);
+  --muted: var(--color-muted);
+  --accent: var(--color-accent);
+  --accent-dim: var(--color-accent-soft);
+}
+:root {
+  /* Page & surfaces */
+  --page-bg: #f4f4f2;
+  --surface: #ffffff;
+  --surface-muted: #f5f5f4;
+  --border: #e2e0dc;
+  --border-strong: #a8a29e;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+
+  /* Table / playmat */
+  --table-felt: #d4e4d4;
+  --table-felt-dark: #bdd4bd;
+  --table-border: #9ab89a;
+  --table-shadow: rgba(40, 60, 40, 0.12);
+
+  /* Actions */
+  --accent: #c41e3a;
+  --accent-hover: #a01830;
+  --accent-soft: rgba(196, 30, 58, 0.12);
+  --success: #1a7a3a;
+  --success-soft: rgba(26, 122, 58, 0.12);
+  --warning: #b45309;
+  --warning-soft: rgba(180, 83, 9, 0.12);
+  --danger: #991b1b;
+  --danger-soft: rgba(153, 27, 27, 0.1);
+  --info: #1d4ed8;
+  --info-soft: rgba(29, 78, 216, 0.1);
+
+  /* Cards & piles */
+  --card-radius: 10px;
+  --card-gap: 0.5rem;
+  --pile-radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  /* Typography */
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text);
+  background-color: var(--page-bg);
+}

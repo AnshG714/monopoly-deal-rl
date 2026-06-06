@@ -26,20 +26,28 @@ Open http://localhost:5173. Vite proxies `/games` to `http://127.0.0.1:8000`.
 |----------|---------|---------|
 | `VITE_API_URL` | `""` (same origin) | API base URL for production builds |
 
+## Interaction model
+
+The game table uses **desktop drag-and-drop** with **click fallbacks** (select a card, then click a highlighted target). Touch/mobile pointer drag is **not** supported in this pass.
+
+Gestures are matched client-side against `legal_moves` params; moves are still submitted via `POST /games/{id}/moves` with `move_id`.
+
 ## Project layout
 
 ```
 src/
-  api/          # fetch client + TypeScript types matching api/schemas.py
-  components/   # board, hand, legal move buttons
-  hooks/        # useGame — create game + apply moves
+  api/              # fetch client + TypeScript types
+  components/
+    game/           # GameScreen, GameTable, piles, panels
+  game/             # moveMatchers, interactionTypes, useGameActions
+  hooks/            # useGame
+  styles/           # tokens.css
+  utils/            # cn helper
 ```
 
-## What’s next (for you)
+## Tests
 
-The scaffold is intentionally functional, not polished. Good next steps:
-
-1. **Card art** — map `serialize_card` fields to real Monopoly Deal card images.
-2. **Move UX** — group moves by kind; show `params` as pickers instead of a flat list.
-3. **Pending interrupts** — highlight when `state.pending` is set (rent, steal, JSN).
-4. **Persistence** — store `game_id` in `sessionStorage` so refresh doesn’t lose the game.
+```bash
+cd web
+npm test
+```
