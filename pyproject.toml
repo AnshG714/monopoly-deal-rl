@@ -4,14 +4,20 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "uvicorn[standard]>=0.32",
+]
 
 [project.scripts]
 rollout = "rollout.rollout:main"
+serve = "api.main:main"
 
 [build-system]
 requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["models*", "rollout*"]
+include = ["models*", "rollout*", "mcts*", "serialization*", "api*"]
+exclude = ["*.tests", "*.tests.*"]
