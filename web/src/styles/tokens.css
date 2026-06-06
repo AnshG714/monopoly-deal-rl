@@ -2,7 +2,7 @@
   --color-page: #f4f4f2;
   --color-text: #1f2933;
   --color-surface: #ffffff;
-  --color-surface-muted: #f0efec;
+  --color-surface-muted: #9c9789;
   --color-border: #e2e0dc;
   --color-muted: #6b7280;
   --color-accent: #2e7d4f;
@@ -49,9 +49,9 @@
 }
 :root {
   /* Page & surfaces */
-  --page-bg: #f4f4f2;
-  --surface: #ffffff;
-  --surface-muted: #f5f5f4;
+  --page-bg: var(--color-page);
+  --surface: var(--color-surface);
+  --surface-muted: var(--color-surface-muted);
   --border: #e2e0dc;
   --border-strong: #a8a29e;
   --text: #1a1a1a;

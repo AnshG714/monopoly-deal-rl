@@ -1,5 +1,6 @@
 export * from "./button";
 export * from "./card";
+export * from "./cn";
 export * from "./flex";
 export * from "./input";
 export * from "./label";

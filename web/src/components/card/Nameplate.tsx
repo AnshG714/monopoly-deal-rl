@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 
 import { Flex } from '@/components/ui/flex'
-import { cn } from '@/lib/utils'
+import { cn } from '@/components/ui'
 
 import type { VisualKind } from './utils'
 

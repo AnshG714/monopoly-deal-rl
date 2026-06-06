@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/components/ui'
 
 import { cornerKind, type VisualKind } from './utils'
 

@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority'
 
 import type { Card } from '@/api/types'
 import { Flex } from '@/components/ui/flex'
-import { cn } from '@/lib/utils'
+import { cn } from '@/components/ui'
 
 import { frameShowsColorBand, frameShowsNameplate } from './chrome'
 import { ColorBand } from './ColorBand'

@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority'
 
 import { Flex } from '@/components/ui/flex'
-import { cn } from '@/lib/utils'
+import { cn } from '@/components/ui'
 
 const colorBandVariants = cva(
   'overflow-hidden border-2 border-[#222936] bg-[var(--card-accent)]',

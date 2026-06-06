@@ -2,7 +2,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 const flexVariants = cva("gap-[length:var(--flex-gap,0px)]", {
   variants: {

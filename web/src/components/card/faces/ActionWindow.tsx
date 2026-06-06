@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority'
 import type { ReactNode } from 'react'
 
 import { Flex } from '@/components/ui/flex'
-import { cn } from '@/lib/utils'
+import { cn } from '@/components/ui'
 
 const actionWindowVariants = cva(
   'relative h-full w-full px-2 py-[0.55rem] pt-[0.65rem] text-center before:absolute before:bottom-[0.42rem] before:top-[0.42rem] before:w-[0.34rem] before:border before:border-[rgba(34,41,54,0.35)] before:bg-[color-mix(in_srgb,var(--card-accent)_36%,white)] before:content-[""] after:absolute after:bottom-[0.42rem] after:top-[0.42rem] after:w-[0.34rem] after:border after:border-[rgba(34,41,54,0.35)] after:bg-[color-mix(in_srgb,var(--card-accent)_36%,white)] after:content-[""] before:left-[0.38rem] after:right-[0.38rem] border-[3px] border-double border-[color-mix(in_srgb,var(--card-accent)_54%,#222936)] bg-[repeating-linear-gradient(90deg,transparent_0_0.34rem,rgba(17,24,39,0.04)_0.34rem_0.44rem),linear-gradient(135deg,color-mix(in_srgb,var(--card-paper)_84%,#94a3b8),var(--card-paper))]',

@@ -32,6 +32,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-page-bg: var(--color-page);
+  --color-surface-muted: var(--surface-muted);
 }
 
 :root {
