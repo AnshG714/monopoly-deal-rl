@@ -43,3 +43,12 @@ class ApiTests(unittest.TestCase):
     def test_unknown_game_returns_404(self) -> None:
         resp = self.client.get("/games/does-not-exist")
         self.assertEqual(resp.status_code, 404)
+
+    def test_deck_returns_serialized_full_deck(self) -> None:
+        resp = self.client.get("/api/deck")
+        self.assertEqual(resp.status_code, 200)
+
+        body = resp.json()
+        self.assertEqual(body["total"], 106)
+        self.assertEqual(len(body["cards"]), 106)
+        self.assertIn("display_name", body["cards"][0])

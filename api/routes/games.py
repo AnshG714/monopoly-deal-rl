@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from ..schemas import ApplyMoveRequest, CreateGameRequest, GameStateResponse
+from models.cards.registry import build_full_deck
+from serialization.cards import serialize_card
+
+from ..schemas import ApplyMoveRequest, CreateGameRequest, DeckResponse, GameStateResponse
 from ..services.game_service import (
     GameNotFoundError,
     GameService,
@@ -12,6 +15,12 @@ from ..services.game_service import (
 
 router = APIRouter(tags=["games"])
 game_service = GameService()
+
+
+@router.get("/api/deck", response_model=DeckResponse)
+def get_deck() -> DeckResponse:
+    cards = [serialize_card(card) for card in build_full_deck()]
+    return DeckResponse(total=len(cards), cards=cards)
 
 
 @router.post("/games", response_model=GameStateResponse)

@@ -9,4 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# Node / frontend
+web/node_modules/
+web/dist/
+
 AGENTS.md

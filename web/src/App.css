@@ -1,0 +1,1291 @@
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.app-header__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(15, 20, 25, 0.45);
+}
+
+.app-nav a {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav a:hover,
+.app-nav__link--active {
+  background: var(--accent);
+  color: #082f2a;
+}
+
+.new-game {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.new-game label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.new-game input {
+  width: 7rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: inherit;
+}
+
+.new-game button,
+.move-button {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.new-game button {
+  padding: 0.55rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.new-game button:disabled,
+.move-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.banner {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.banner--error {
+  background: #3b1212;
+  color: #fecaca;
+}
+
+.banner--loading {
+  background: #1e293b;
+  color: #bae6fd;
+}
+
+.banner--hint {
+  background: #172554;
+  color: #bfdbfe;
+}
+
+.welcome {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.deck-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.deck-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(45, 212, 191, 0.14),
+      transparent 38%
+    ),
+    var(--surface);
+}
+
+.deck-hero h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.deck-hero p {
+  max-width: 42rem;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.deck-hero__eyebrow {
+  color: var(--accent) !important;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.deck-hero__count {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.14);
+  color: #99f6e4;
+  font-weight: 800;
+}
+
+.deck-section {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(26, 35, 50, 0.82);
+}
+
+.deck-section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.deck-section__header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.deck-section__header span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+  justify-items: center;
+}
+
+.status-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.status-bar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.status-bar__pending,
+.status-bar__over {
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.status-bar__pending {
+  background: #422006;
+  color: #fde68a;
+}
+
+.status-bar__over {
+  background: #14532d;
+  color: #bbf7d0;
+  font-weight: 600;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.table {
+  display: grid;
+  grid-template-rows: auto auto auto auto;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(45, 212, 191, 0.14),
+      transparent 45%
+    ),
+    linear-gradient(135deg, #0f3d2e, #09231c);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.center-playmat {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.play-target,
+.property-zones {
+  min-height: 120px;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(15, 20, 25, 0.72);
+  border: 1px dashed rgba(226, 232, 240, 0.24);
+}
+
+.play-target h2,
+.property-zones h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.play-target p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.drop-zone {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.drop-zone:has(.card-badge--draggable:active),
+.drop-zone:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.opponent-drop {
+  position: relative;
+  border-radius: 14px;
+}
+
+.drop-zone__label {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(15, 20, 25, 0.82);
+  color: #bae6fd;
+  font-size: 0.75rem;
+}
+
+.property-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.5rem;
+}
+
+.property-color-slot {
+  min-height: 58px;
+  padding: 0.55rem;
+  border: 1px dashed rgba(226, 232, 240, 0.28);
+  border-radius: 10px;
+  color: #f8fafc;
+  text-transform: capitalize;
+  font-weight: 700;
+  background: linear-gradient(180deg, var(--slot-color, #475569), #111827);
+}
+
+.property-color-slot:hover {
+  border-color: var(--accent);
+}
+
+.property-color-slot--brown {
+  --slot-color: #8b4513;
+}
+
+.property-color-slot--light_blue {
+  --slot-color: #87ceeb;
+}
+
+.property-color-slot--pink {
+  --slot-color: #ff69b4;
+}
+
+.property-color-slot--orange {
+  --slot-color: #ff8c00;
+}
+
+.property-color-slot--red {
+  --slot-color: #dc143c;
+}
+
+.property-color-slot--yellow {
+  --slot-color: #ffd700;
+  color: #111827;
+}
+
+.property-color-slot--green {
+  --slot-color: #228b22;
+}
+
+.property-color-slot--blue {
+  --slot-color: #1d4ed8;
+}
+
+.property-color-slot--railroad {
+  --slot-color: #2f4f4f;
+}
+
+.property-color-slot--utility {
+  --slot-color: #708090;
+}
+
+.player-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.player-panel--viewer {
+  border-color: var(--accent);
+}
+
+.player-panel--acting {
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.player-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.player-panel__header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.player-panel__status {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.player-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.player-panel__stats div {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.player-panel__stats dt {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.player-panel__stats dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+}
+
+.player-panel h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.card-row--compact {
+  gap: 0.35rem;
+}
+
+.deal-card {
+  --card-accent: #94a3b8;
+  --card-accent-2: var(--card-accent);
+  --card-paper: #eef6ff;
+  --card-symbol: #eef6ff;
+  --card-ink: #111827;
+  position: relative;
+  isolation: isolate;
+  width: 12rem;
+  height: 17.15rem;
+  padding: 0.55rem;
+  border: 2px solid #74819a;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.75),
+      rgba(219, 232, 250, 0.4)
+    ),
+    var(--card-paper);
+  color: #111827;
+  box-shadow:
+    0 15px 30px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.86rem;
+  user-select: none;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.deal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0.34rem;
+  border: 1px solid #84a0c6;
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+.deal-card--action {
+  --card-paper: #d8d3ea;
+  --card-symbol: #eef6ff;
+  border-color: color-mix(in srgb, var(--card-accent) 54%, #334155);
+}
+
+.deal-card--action-deal-breaker {
+  --card-paper: #cfc4f0;
+  --card-symbol: #eee8ff;
+}
+
+.deal-card--action-debt-collector {
+  --card-paper: #d6e1e0;
+  --card-symbol: #edf7f5;
+}
+
+.deal-card--action-double-rent {
+  --card-paper: #eee4c2;
+  --card-symbol: #fff7d6;
+}
+
+.deal-card--action-forced-deal {
+  --card-paper: #d4d7dc;
+  --card-symbol: #f1f5f9;
+}
+
+.deal-card--action-house {
+  --card-paper: #d2d8d2;
+  --card-symbol: #dcfce7;
+}
+
+.deal-card--action-hotel {
+  --card-paper: #d7e5f7;
+  --card-symbol: #eff6ff;
+}
+
+.deal-card--action-its-my-birthday {
+  --card-paper: #ded0c7;
+  --card-symbol: #ffedd5;
+}
+
+.deal-card--action-just-say-no {
+  --card-paper: #b9dded;
+  --card-symbol: #e0f7ff;
+}
+
+.deal-card--action-pass-go {
+  --card-paper: #ebe5c8;
+  --card-symbol: #fff8d5;
+}
+
+.deal-card--action-sly-deal {
+  --card-paper: #d3d5da;
+  --card-symbol: #f8fafc;
+}
+
+.card-badge--draggable {
+  cursor: grab;
+}
+
+.card-badge--draggable:active {
+  cursor: grabbing;
+  transform: translateY(2px) rotate(-1deg);
+}
+
+.card-badge--draggable:hover {
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.35),
+    0 0 0 2px rgba(45, 212, 191, 0.35);
+}
+
+.deal-card__frame {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.78rem 0.48rem 0.36rem;
+}
+
+.deal-card__corner {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 1.82rem;
+  height: 1.82rem;
+  place-items: center;
+  border: 2px solid #56647a;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #111827;
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.deal-card__corner--top {
+  top: 0.28rem;
+  left: 0.28rem;
+}
+
+.deal-card__corner--bottom {
+  right: 0.28rem;
+  bottom: 0.28rem;
+  transform: rotate(180deg);
+}
+
+.deal-card__color-band {
+  display: grid;
+  min-height: 1.55rem;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  overflow: hidden;
+  border: 2px solid #222936;
+  background: var(--card-accent);
+}
+
+.deal-card--action > .deal-card__frame > .deal-card__color-band,
+.deal-card--money > .deal-card__frame > .deal-card__color-band,
+.deal-card--rent > .deal-card__frame > .deal-card__color-band,
+.deal-card--property-wild > .deal-card__frame > .deal-card__color-band {
+  display: none;
+}
+
+.deal-card--property-multi > .deal-card__frame > .deal-card__color-band {
+  min-height: 1.1rem;
+  background: linear-gradient(90deg, var(--card-accent), var(--card-accent-2));
+  border-width: 1px;
+}
+
+.deal-card__color-band span {
+  display: block;
+  min-width: 0.35rem;
+}
+
+.deal-card__nameplate {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 2.45rem;
+  padding: 0.25rem 0.35rem;
+  border: 2px solid #222936;
+  background: var(--card-accent);
+  color: #111827;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.deal-card--property-single .deal-card__nameplate {
+  background: var(--card-accent);
+}
+
+.deal-card--property-multi .deal-card__nameplate,
+.deal-card--rent .deal-card__nameplate {
+  background: linear-gradient(90deg, var(--card-accent), var(--card-accent-2));
+}
+
+.deal-card--action .deal-card__nameplate,
+.deal-card--money .deal-card__nameplate {
+  background: #d8cfb5;
+}
+
+.deal-card--action > .deal-card__frame > .deal-card__nameplate,
+.deal-card--money > .deal-card__frame > .deal-card__nameplate,
+.deal-card--rent > .deal-card__frame > .deal-card__nameplate,
+.deal-card--property-wild > .deal-card__frame > .deal-card__nameplate {
+  display: none;
+}
+
+.deal-card--property-multi .deal-card__nameplate {
+  min-height: 1.9rem;
+  background: linear-gradient(90deg, var(--card-accent), var(--card-accent-2));
+}
+
+.deal-card--property-multi .deal-card__nameplate span {
+  font-size: 0.52rem;
+}
+
+.deal-card--property-multi .deal-card__nameplate strong {
+  font-size: 0.8rem;
+}
+
+.deal-card--property-single .deal-card__nameplate {
+  min-height: 2.7rem;
+  margin-top: 0.2rem;
+}
+
+.deal-card--property-single .deal-card__nameplate span {
+  display: none;
+}
+
+.deal-card--property-single .deal-card__nameplate strong {
+  font-size: 1.04rem;
+  line-height: 1.05;
+}
+
+.deal-card--property-single > .deal-card__frame > .deal-card__color-band {
+  display: none;
+}
+
+.deal-card--money {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-accent) 82%, white),
+      var(--card-accent)
+    ),
+    var(--card-accent);
+}
+
+.deal-card--money::before {
+  border-color: color-mix(in srgb, var(--card-accent-2) 62%, #1f2937);
+}
+
+.deal-card--money .deal-card__frame {
+  padding: 0.78rem 0.5rem 0.42rem;
+}
+
+.deal-card--money .deal-card__color-band,
+.deal-card--money .deal-card__nameplate {
+  display: none;
+}
+
+.deal-card--money .deal-card__corner {
+  border-color: #222936;
+  background: color-mix(in srgb, var(--card-accent) 78%, white);
+}
+
+.deal-card--action .deal-card__corner {
+  border-color: color-mix(in srgb, var(--card-accent) 74%, #334155);
+  background:
+    radial-gradient(circle at center, #eef6ff 0 47%, transparent 48%),
+    color-mix(in srgb, var(--card-accent) 38%, #f8fafc);
+}
+
+.deal-card__nameplate span {
+  font-size: 0.53rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.deal-card__nameplate strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 900;
+  line-height: 1.02;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.deal-card__body {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  place-items: center;
+}
+
+.deal-card__rent-table {
+  width: 100%;
+  padding: 0.35rem 0.15rem;
+}
+
+.deal-card__rent-caption {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #475569;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.deal-card--property-single .deal-card__rent-caption {
+  color: #111827;
+  font-size: 1.32rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.deal-card__rent-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.36rem;
+  align-items: center;
+  margin: 0.3rem 0;
+}
+
+.deal-card__rent-count {
+  display: grid;
+  width: 1.36rem;
+  height: 1.36rem;
+  place-items: center;
+  border: 1px solid #64748b;
+  border-top: 0.25rem solid var(--card-accent);
+  border-radius: 0.18rem;
+  background: #dbeafe;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.deal-card__rent-dots {
+  min-width: 1.15rem;
+  border-bottom: 1px dotted #64748b;
+}
+
+.deal-card__rent-value {
+  font-size: 0.94rem;
+  font-weight: 900;
+}
+
+.deal-card__wild-face {
+  display: grid;
+  width: 100%;
+  gap: 0.7rem;
+  place-items: center;
+  text-align: center;
+}
+
+.deal-card__wild-face .deal-card__color-band {
+  width: 100%;
+}
+
+.deal-card__mascot {
+  display: grid;
+  width: 4.2rem;
+  height: 4.2rem;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 32%, #fff 0 20%, transparent 21%),
+    linear-gradient(180deg, #111827 0 30%, #f8fafc 31% 58%, #111827 59%);
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.deal-card__multi-face {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.12rem;
+}
+
+/* All rent sizing inside multi-face is calculated to fit 7 rows (worst case:
+   Railroad 4 + Green 3) in ~9.25rem of body height. */
+.deal-card__multi-face .deal-card__rent-table {
+  padding: 0.05rem 0.1rem;
+}
+
+.deal-card__multi-face .deal-card__rent-caption {
+  margin-bottom: 0.06rem;
+  color: #111827;
+  font-size: 0.48rem;
+}
+
+.deal-card__multi-face .deal-card__rent-row {
+  gap: 0.1rem;
+  margin: 0.04rem 0;
+}
+
+.deal-card__multi-face .deal-card__rent-count {
+  width: 0.82rem;
+  height: 0.82rem;
+  border-top-width: 0.14rem;
+  font-size: 0.44rem;
+}
+
+.deal-card__multi-face .deal-card__rent-value {
+  font-size: 0.52rem;
+}
+
+.deal-card__multi-divider {
+  height: 1px;
+  background: #c8d4e0;
+  margin: 0.12rem 0;
+}
+
+.deal-card__wild-face p,
+.deal-card__action-window p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.deal-card__action-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 0.65rem 0.5rem 0.55rem;
+  border: 3px double color-mix(in srgb, var(--card-accent) 54%, #222936);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 0.34rem,
+      rgba(17, 24, 39, 0.04) 0.34rem 0.44rem
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--card-paper) 84%, #94a3b8),
+      var(--card-paper)
+    );
+  text-align: center;
+}
+
+.deal-card__action-window::before,
+.deal-card__action-window::after {
+  content: "";
+  position: absolute;
+  top: 0.42rem;
+  bottom: 0.42rem;
+  width: 0.34rem;
+  border: 1px solid rgba(34, 41, 54, 0.35);
+  background: color-mix(in srgb, var(--card-accent) 36%, white);
+}
+
+.deal-card__action-window::before {
+  left: 0.38rem;
+}
+
+.deal-card__action-window::after {
+  right: 0.38rem;
+}
+
+.deal-card__action-window span {
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  padding: 0.15rem 0.42rem;
+  border: 1px solid rgba(34, 41, 54, 0.28);
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.deal-card__action-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 5.25rem;
+  min-height: 3.25rem;
+  place-items: center;
+  padding: 0.2rem 0.35rem;
+  border: 0.22rem solid color-mix(in srgb, var(--card-accent) 78%, #222936);
+  border-radius: 0.8rem;
+  background:
+    radial-gradient(
+      circle at 50% 28%,
+      rgba(255, 255, 255, 0.85),
+      transparent 34%
+    ),
+    var(--card-symbol);
+  color: color-mix(in srgb, var(--card-accent) 48%, #111827);
+  font-size: 1.38rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  box-shadow:
+    0 0.16rem 0 rgba(17, 24, 39, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.deal-card__action-window strong {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 88%;
+  aspect-ratio: 1;
+  place-items: center;
+  margin-top: auto;
+  margin-bottom: auto;
+  flex-shrink: 0;
+  padding: 0.34rem;
+  border: 0.5rem solid var(--card-accent);
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.deal-card__action-window--rent strong {
+  border-color: #c2410c;
+}
+
+.deal-card__rent-colors {
+  display: flex;
+  overflow: hidden;
+  width: 5.6rem;
+  height: 0.92rem;
+  border: 1px solid #222936;
+}
+
+.deal-card__rent-colors span {
+  flex: 1;
+}
+
+.deal-card__money-face {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border: 0.34rem double color-mix(in srgb, var(--card-accent-2) 72%, #111827);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 8%,
+      rgba(255, 255, 255, 0.18) 8% 11%,
+      transparent 11% 89%,
+      rgba(255, 255, 255, 0.18) 89% 92%,
+      transparent 92%
+    ),
+    radial-gradient(circle, rgba(255, 255, 255, 0.45) 0 32%, transparent 33%),
+    linear-gradient(145deg, var(--card-accent), var(--card-accent-2));
+  box-shadow:
+    inset 0 0 0 0.2rem rgba(255, 255, 255, 0.2),
+    inset 0 0 0 0.42rem rgba(17, 24, 39, 0.08);
+}
+
+.deal-card__money-face::before,
+.deal-card__money-face::after {
+  content: "";
+  position: absolute;
+  inset: 0.62rem;
+  border: 1px solid rgba(17, 24, 39, 0.45);
+  pointer-events: none;
+}
+
+.deal-card__money-face::after {
+  inset: 1.02rem;
+  border-style: dotted;
+  opacity: 0.55;
+}
+
+.deal-card__money-face span {
+  display: grid;
+  position: relative;
+  z-index: 1;
+  width: 6.35rem;
+  height: 6.35rem;
+  place-items: center;
+  border: 3px solid #27272a;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 0 0.22rem rgba(17, 24, 39, 0.08);
+  font-size: 1.9rem;
+  font-weight: 900;
+}
+
+.deal-card__footer {
+  margin-top: auto;
+  color: #64748b;
+  font-size: 0.46rem;
+  text-align: center;
+}
+
+.deal-card--compact {
+  width: 6.75rem;
+  height: 9.35rem;
+  padding: 0.33rem;
+  border-radius: 10px;
+  font-size: 0.62rem;
+}
+
+.deal-card--compact::before {
+  inset: 0.23rem;
+  border-radius: 7px;
+}
+
+.deal-card--compact .deal-card__frame {
+  height: 100%;
+  gap: 0.22rem;
+  padding: 0.45rem 0.2rem 0.15rem;
+}
+
+.deal-card--compact .deal-card__corner {
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 0.42rem;
+}
+
+.deal-card--compact .deal-card__color-band {
+  min-height: 0.82rem;
+  border-width: 1px;
+}
+
+.deal-card--compact .deal-card__nameplate {
+  min-height: 1.45rem;
+  padding: 0.16rem;
+  border-width: 1px;
+}
+
+.deal-card--compact .deal-card__nameplate span,
+.deal-card--compact .deal-card__footer,
+.deal-card--compact .deal-card__rent-caption,
+.deal-card--compact .deal-card__action-window p {
+  display: none;
+}
+
+.deal-card--compact .deal-card__nameplate strong {
+  font-size: 0.6rem;
+}
+
+.deal-card--compact .deal-card__rent-row {
+  gap: 0.12rem;
+  margin: 0.08rem 0;
+}
+
+.deal-card--compact .deal-card__rent-count {
+  width: 0.78rem;
+  height: 0.78rem;
+  font-size: 0.47rem;
+}
+
+.deal-card--compact .deal-card__rent-value {
+  font-size: 0.52rem;
+}
+
+.deal-card--compact .deal-card__action-window {
+  min-height: 2.75rem;
+  padding: 0.34rem 0.18rem;
+  border-width: 2px;
+}
+
+.deal-card--compact .deal-card__action-window::before,
+.deal-card--compact .deal-card__action-window::after,
+.deal-card--compact .deal-card__action-window span {
+  display: none;
+}
+
+.deal-card--compact .deal-card__action-icon {
+  width: 2.55rem;
+  min-height: 1.3rem;
+  padding: 0.1rem;
+  border-width: 0.12rem;
+  border-radius: 0.36rem;
+  font-size: 0.66rem;
+}
+
+.deal-card--compact .deal-card__action-window strong {
+  width: 88%;
+  aspect-ratio: 1;
+  padding: 0.1rem;
+  border-width: 0.24rem;
+  font-size: 0.43rem;
+}
+
+.deal-card--compact .deal-card__money-face {
+  width: 100%;
+  height: 100%;
+}
+
+.deal-card--compact .deal-card__money-face span {
+  width: 2.7rem;
+  height: 2.7rem;
+  font-size: 0.9rem;
+}
+
+.deal-card--compact .deal-card__wild-face p,
+.deal-card--compact .deal-card__mascot {
+  display: none;
+}
+
+.property-set-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.property-set__header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.property-set__color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.property-set__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.property-set {
+  padding: 0.6rem;
+  border-radius: 10px;
+  background: rgba(15, 20, 25, 0.5);
+  border: 1px solid transparent;
+}
+
+.property-set--drop-target {
+  border-color: rgba(226, 232, 240, 0.18);
+}
+
+.property-set--drop-target:hover {
+  border-color: var(--accent);
+}
+
+.legal-moves {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.legal-moves h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.legal-moves__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legal-moves__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.move-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  background: var(--bg);
+  color: inherit;
+  border: 1px solid var(--border);
+}
+
+.move-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.move-button__id {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.move-button__kind {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.move-debug {
+  margin-top: 1rem;
+}
+
+.move-debug summary {
+  cursor: pointer;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}

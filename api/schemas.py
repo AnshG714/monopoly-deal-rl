@@ -27,3 +27,8 @@ class GameStateResponse(BaseModel):
     state: dict
     legal_moves: list[dict]
     seed: int | None = None
+
+
+class DeckResponse(BaseModel):
+    total: int
+    cards: list[dict]

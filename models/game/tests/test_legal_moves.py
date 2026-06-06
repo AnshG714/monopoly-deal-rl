@@ -15,6 +15,7 @@ from models.cards.rent import RentCard
 from models.game.commands import (
     DiscardCards,
     EndTurn,
+    MAX_PLAYS_PER_TURN,
     PassJustSayNo,
     PayDebt,
     PlayJustSayNo,
@@ -57,10 +58,21 @@ class LegalMovesTests(unittest.TestCase):
         moves = game.legal_moves()
         self.assertEqual([PlayPassGo(0)], [m for m in moves if isinstance(m, PlayPassGo)])
 
-    def test_over_hand_limit_only_discard_combinations(self) -> None:
+    def test_over_hand_limit_with_plays_remaining_still_allows_hand_plays(self) -> None:
         game = Game()
         game.players[0].hand = [MoneyCard(1)] * 8
         moves = game.legal_moves()
+
+        self.assertNotIn(EndTurn, {type(m) for m in moves})
+        self.assertEqual(len([m for m in moves if isinstance(m, PlayMoneyFromHand)]), 8)
+        self.assertEqual([m for m in moves if isinstance(m, DiscardCards)], [])
+
+    def test_over_hand_limit_at_max_plays_only_discard_combinations(self) -> None:
+        game = Game()
+        game.players[0].hand = [MoneyCard(1)] * 8
+        game.plays_this_turn = MAX_PLAYS_PER_TURN
+        moves = game.legal_moves()
+
         self.assertTrue(all(isinstance(m, DiscardCards) for m in moves))
         self.assertEqual(len(moves), 8)
         for move in moves:
@@ -69,6 +81,7 @@ class LegalMovesTests(unittest.TestCase):
     def test_discard_enumerate_matches_legal_moves(self) -> None:
         game = Game()
         game.players[0].hand = [MoneyCard(1)] * 10
+        game.plays_this_turn = MAX_PLAYS_PER_TURN
         enumerated = DiscardCards.enumerate(game)
         legal = [m for m in game.legal_moves() if isinstance(m, DiscardCards)]
         self.assertEqual(len(enumerated), 120)

@@ -12,6 +12,7 @@ from .commands import (
     GameCommand,
     GameView,
     MAX_HAND_SIZE_AT_END_OF_TURN,
+    MAX_PLAYS_PER_TURN,
     PassJustSayNo,
     PayDebt,
     PlayDealBreaker,
@@ -103,6 +104,7 @@ def _must_discard_to_end_turn(game: GameView) -> bool:
         game.pending is None
         and game.acting_player_idx == game.current_player_idx
         and len(game.current_player().hand) > MAX_HAND_SIZE_AT_END_OF_TURN
+        and game.plays_this_turn >= MAX_PLAYS_PER_TURN
     )
 
 
