@@ -74,7 +74,14 @@ When `legal_moves()` returns only `DiscardCards`, **score each move in that list
 
 ## Paying debt
 
-When `PaymentDue` is pending, **score each move in `legal_moves()`** and apply the best one.
+When `PaymentDue` is pending during a simulated game, the AI does not list every
+possible way to pay. That would be slow, especially when a player has many bank
+cards and properties. Instead, it follows the payment priorities directly and
+builds the payment it wants to make.
+
+In plain English: use Just Say No when it is worth it, otherwise pay from the
+bank if possible, avoid breaking complete sets, and give up the lowest useful
+amount of value.
 
 ### JSN (prefer over paying)
 

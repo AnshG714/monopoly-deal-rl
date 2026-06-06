@@ -59,6 +59,10 @@ def _face_value_score(card: Card) -> int:
 
 def choose_move(game: Game) -> GameCommand:
     """Pick one legal move using rollout_strategy.md heuristics."""
+    pending = game.pending
+    if isinstance(pending, PaymentDue):
+        return _choose_payment_fast(game, pending)
+
     moves = game.legal_moves()
     if not moves:
         raise ValueError("No legal moves found")
@@ -67,9 +71,6 @@ def choose_move(game: Game) -> GameCommand:
     if all(isinstance(m, DiscardCards) for m in moves):
         return _choose_discard(game, moves)
 
-    pending = game.pending
-    if isinstance(pending, PaymentDue):
-        return _choose_payment(game, moves, pending)
     if isinstance(pending, (SlyDealPending, ForcedDealPending, DealBreakerPending)):
         return _choose_defend_steal(game, moves, pending)
 
@@ -288,6 +289,149 @@ def _choose_payment(
     if not pay_moves:
         return moves[0]
     return _best_pay_debt(game, pay_moves)
+
+
+def _choose_payment_fast(game: Game, pending: PaymentDue) -> GameCommand:
+    """Choose a payment response without enumerating every PayDebt combination."""
+    jsn_move = _first_legal_jsn(game)
+    if pending.jsn is None:
+        if jsn_move is not None and _debtor_should_jsn(game, pending):
+            return jsn_move
+    else:
+        acting = game.acting_player_idx
+        defender_idx = pending.debtor_idx
+        actor_idx = pending.creditor_idx
+        d_jsn = count_jsns(game.players[defender_idx])
+        a_jsn = count_jsns(game.players[actor_idx])
+        side = "defender" if acting == defender_idx else "actor"
+        if jsn_move is not None and side_wins_if_plays_jsn(
+            d_jsn,
+            a_jsn,
+            pending.jsn.responder,
+            pending.jsn.chain_started,
+            side=side,
+        ):
+            return jsn_move
+        pass_move = PassJustSayNo()
+        try:
+            pass_move.validate(game)
+            return pass_move
+        except (ValueError, TypeError, IndexError, RuntimeError):
+            pass
+
+    pay_move = _direct_pay_debt(game, pending)
+    try:
+        pay_move.validate(game)
+        return pay_move
+    except (ValueError, TypeError, IndexError, RuntimeError):
+        # Keep the rollout robust while this optimized path stays conservative.
+        return _choose_payment(game, game.legal_moves(), pending)
+
+
+def _first_legal_jsn(game: Game) -> PlayJustSayNo | None:
+    actor = game.players[game.acting_player_idx]
+    for hand_index, card in enumerate(actor.hand):
+        if (
+            isinstance(card, ActionCard)
+            and card.action_type == ActionCardType.JUST_SAY_NO
+        ):
+            move = PlayJustSayNo(hand_index)
+            try:
+                move.validate(game)
+                return move
+            except (ValueError, TypeError, IndexError, RuntimeError):
+                continue
+    return None
+
+
+def _direct_pay_debt(game: Game, pending: PaymentDue) -> PayDebt:
+    debtor = game.players[pending.debtor_idx]
+    assets = _payment_assets(game, debtor)
+    if not assets:
+        return PayDebt([], [])
+
+    if sum(asset["value"] for asset in assets) < pending.amount_m:
+        return _pay_debt_from_payment_assets(assets)
+
+    bank_assets = [asset for asset in assets if asset["kind"] == "m"]
+    if sum(asset["value"] for asset in bank_assets) >= pending.amount_m:
+        return _pay_debt_from_payment_assets(
+            _best_payment_subset(bank_assets, pending.amount_m)
+        )
+
+    safe_assets = [asset for asset in assets if not asset["breaks_complete_set"]]
+    if sum(asset["value"] for asset in safe_assets) >= pending.amount_m:
+        return _pay_debt_from_payment_assets(
+            _best_payment_subset(safe_assets, pending.amount_m)
+        )
+
+    return _pay_debt_from_payment_assets(_best_payment_subset(assets, pending.amount_m))
+
+
+def _payment_assets(game: Game, debtor: Player) -> list[dict]:
+    assets: list[dict] = []
+    for money_index, card in enumerate(debtor.money_pile):
+        assets.append(
+            {
+                "kind": "m",
+                "index": money_index,
+                "value": card.value,
+                "progress_lost": 0,
+                "property_count": 0,
+                "breaks_complete_set": False,
+            }
+        )
+    for set_idx, pile in enumerate(debtor.property_sets):
+        for card_idx, card in enumerate(pile.cards):
+            progress_lost = _face_value_score(card)
+            if _cards_needed(pile) == 1:
+                progress_lost += 100
+            assets.append(
+                {
+                    "kind": "p",
+                    "index": (set_idx, card_idx),
+                    "value": card.value,
+                    "progress_lost": progress_lost,
+                    "property_count": 1,
+                    "breaks_complete_set": pile.is_complete(),
+                }
+            )
+    return assets
+
+
+def _best_payment_subset(assets: list[dict], amount_m: int) -> list[dict]:
+    # Dynamic programming over total face value avoids enumerating every subset.
+    states: dict[int, tuple[tuple[int, int, int], list[dict]]] = {0: ((0, 0, 0), [])}
+    for asset in assets:
+        for total, (key, selected) in list(states.items()):
+            next_total = total + asset["value"]
+            next_selected = selected + [asset]
+            next_key = (
+                key[0] + asset["value"],
+                key[1] + asset["progress_lost"],
+                key[2] + asset["property_count"],
+            )
+            existing = states.get(next_total)
+            if existing is None or next_key < existing[0]:
+                states[next_total] = (next_key, next_selected)
+
+    covering = [
+        (key, selected)
+        for total, (key, selected) in states.items()
+        if total >= amount_m
+    ]
+    return min(covering, key=lambda item: item[0])[1]
+
+
+def _pay_debt_from_payment_assets(assets: list[dict]) -> PayDebt:
+    money_indices: list[int] = []
+    property_indices: list[tuple[int, int]] = []
+    for asset in assets:
+        if asset["kind"] == "m":
+            money_indices.append(asset["index"])
+        else:
+            property_indices.append(asset["index"])
+    return PayDebt(money_indices, property_indices)
 
 
 def _choose_defend_steal(
