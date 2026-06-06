@@ -27,7 +27,7 @@ def rollout(
     max_steps: int = DEFAULT_MAX_STEPS,
     on_step: StepCallback | None = None,
 ) -> dict:
-    """Play ``game`` to completion using heuristic policy. Returns steps taken."""
+    """Play ``game`` to completion using heuristic policy. Returns steps taken and the winner."""
     steps = 0
     while steps < max_steps:
         winner = game.winner_idx()

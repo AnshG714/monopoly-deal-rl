@@ -138,7 +138,9 @@ def _pick_priority_1(game: Game, moves: list[GameCommand]) -> GameCommand | None
     completing_moves = [
         m
         for m in moves
-        if isinstance(m, MoveWildProperty) and _move_wild_completes_set(game, m)
+        if isinstance(m, MoveWildProperty)
+        and _move_wild_completes_set(game, m)
+        and not _move_wild_breaks_complete_set(game, m)
     ]
     if completing_moves:
         return completing_moves[0]
@@ -441,6 +443,11 @@ def _move_wild_completes_set(game: Game, move: MoveWildProperty) -> bool:
     if pile is None:
         return False
     return _cards_needed(pile) == 1
+
+
+def _move_wild_breaks_complete_set(game: Game, move: MoveWildProperty) -> bool:
+    """Moving a wild off a complete pile breaks that set (net-zero set progress)."""
+    return game.current_player().pile_at(move.from_set_idx).is_complete()
 
 
 def _sly_deal_completes_set(game: Game, move: PlaySlyDeal) -> bool:

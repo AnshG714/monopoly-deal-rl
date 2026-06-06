@@ -68,7 +68,13 @@ def _append_if_legal(
         moves.append(cmd)
 
 
-def _command_dedupe_key(cmd: GameCommand) -> object:
+def command_identity_key(cmd: GameCommand) -> object:
+    """Hashable key for deduping and matching commands across enumerations.
+
+    ``PayDebt`` and ``DiscardCards`` can represent the same payment or discard
+    with differently ordered indices; other commands use value equality via the
+    frozen dataclass instance itself.
+    """
     if isinstance(cmd, PayDebt):
         return (
             PayDebt,
@@ -84,7 +90,7 @@ def _dedupe_commands(moves: list[GameCommand]) -> list[GameCommand]:
     seen: set[object] = set()
     unique: list[GameCommand] = []
     for cmd in moves:
-        key = _command_dedupe_key(cmd)
+        key = command_identity_key(cmd)
         if key in seen:
             continue
         seen.add(key)

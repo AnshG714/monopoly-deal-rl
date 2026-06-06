@@ -1,0 +1,86 @@
+from __future__ import annotations
+
+import math
+
+from models.game.commands import GameCommand
+from models.game.legal_moves import command_identity_key
+from mcts.consts import C_UCT
+
+
+def _keys_for_moves(moves: list[GameCommand]) -> set[object]:
+    return {command_identity_key(move) for move in moves}
+
+
+class ISMCTSNode:
+    def __init__(
+        self, move: GameCommand | None = None, parent: "ISMCTSNode" | None = None
+    ):
+        # The move that led to this node. Roots don't have this set.
+        self.move = move
+        self.parent = parent
+        self.children: list[ISMCTSNode] = []
+        self.wins = 0
+        self.visits = 0
+
+        # For tracking how many times each move was an option inside a determinization.
+        # Keys match ``command_identity_key`` so PayDebt / DiscardCards dedupe correctly.
+        self.availability_counts: dict[object, int] = {}
+
+    def get_legal_children(self, legal_moves: list[GameCommand]) -> list[ISMCTSNode]:
+        legal_keys = _keys_for_moves(legal_moves)
+        return [
+            child
+            for child in self.children
+            if child.move is not None and command_identity_key(child.move) in legal_keys
+        ]
+
+    def get_unexpanded_moves(self, legal_moves: list[GameCommand]) -> list[GameCommand]:
+        expanded_keys = {
+            command_identity_key(child.move)
+            for child in self.children
+            if child.move is not None
+        }
+        return [
+            move
+            for move in legal_moves
+            if command_identity_key(move) not in expanded_keys
+        ]
+
+    def choose_child_uct(self, legal_moves: list[GameCommand]) -> ISMCTSNode:
+        legal_children = self.get_legal_children(legal_moves)
+        best_score = -math.inf
+        best_child = None
+
+        for child in legal_children:
+            assert child.move is not None
+            move_key = command_identity_key(child.move)
+            self.availability_counts[move_key] = (
+                self.availability_counts.get(move_key, 0) + 1
+            )
+
+            if child.visits == 0:
+                # If the child has never been visited, it is unexplored and should be chosen.
+                return child
+
+            move_availability = self.availability_counts[move_key]
+
+            # Compute the UCT score for the child.
+            uct_score = child.wins / child.visits + C_UCT * math.sqrt(
+                math.log(move_availability) / child.visits
+            )
+
+            if uct_score > best_score:
+                best_score = uct_score
+                best_child = child
+
+        return best_child
+
+    def best_child(self) -> ISMCTSNode:
+        return max(self.children, key=lambda child: child.visits)
+
+    def backpropagate(self, result: int) -> None:
+        self.visits += 1
+        self.wins += result
+
+        if self.parent is not None:
+            self.parent.backpropagate(result)
