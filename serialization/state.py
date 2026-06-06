@@ -54,6 +54,8 @@ def _serialize_pending(game: Game) -> dict | None:
             "my_card_idx": swap.my_card_idx,
             "their_set_idx": swap.their_set_idx,
             "their_card_idx": swap.their_card_idx,
+            "take_into_color": swap.take_into_color.value,
+            "give_into_color": swap.give_into_color.value,
         }
 
     if isinstance(pending, DealBreakerPending):
@@ -101,6 +103,9 @@ def view_for_player(game: Game, viewer_idx: int) -> dict:
         "plays_this_turn": game.plays_this_turn,
         "deck_size": len(game.deck),
         "discard_size": len(game.discard_pile),
+        "discard_top": (
+            serialize_card(game.discard_pile[-1]) if game.discard_pile else None
+        ),
         "pending": _serialize_pending(game),
         "players": [
             _serialize_player(game, player_idx, viewer_idx=viewer_idx)

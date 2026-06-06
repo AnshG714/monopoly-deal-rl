@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ...cards.action import ActionCardType
+from ...cards.property import Color
 from ..pending import ForcedDealPending, ForcedDealSwapIntent, JustSayNoNegotiation
 from .base import (
     GameCommand,
@@ -18,13 +19,10 @@ def resolve_forced_deal(game: GameView, pending: ForcedDealPending) -> None:
     swap = pending.swap
     actor = player_at(game, pending.actor_idx)
     target = player_at(game, swap.target_player_idx)
-    actor.swap_property_cards_with(
-        target,
-        swap.my_set_idx,
-        swap.my_card_idx,
-        swap.their_set_idx,
-        swap.their_card_idx,
-    )
+    my_card = actor.take_property_card_at(swap.my_set_idx, swap.my_card_idx)
+    their_card = target.take_property_card_at(swap.their_set_idx, swap.their_card_idx)
+    actor.add_property_to_board(their_card, swap.take_into_color)
+    target.add_property_to_board(my_card, swap.give_into_color)
 
 
 @dataclass(frozen=True)
@@ -35,6 +33,8 @@ class PlayForcedDeal(GameCommand):
     my_card_idx: int
     their_set_idx: int
     their_card_idx: int
+    take_into_color: Color
+    give_into_color: Color
 
     def _build_intent(self, game: GameView) -> ForcedDealSwapIntent:
 
@@ -59,13 +59,13 @@ class PlayForcedDeal(GameCommand):
 
         my_card = my_pile.cards[self.my_card_idx]
         their_card = their_pile.cards[self.their_card_idx]
-        if not their_card.can_count_as(my_pile.color):
+        if not their_card.can_count_as(self.take_into_color):
             raise ValueError(
-                "Their card cannot be placed in your selected property set"
+                "Their card cannot be placed in your chosen property color"
             )
-        if not my_card.can_count_as(their_pile.color):
+        if not my_card.can_count_as(self.give_into_color):
             raise ValueError(
-                "Your card cannot be placed in their selected property set"
+                "Your card cannot be placed in their chosen property color"
             )
         return ForcedDealSwapIntent(
             target_player_idx=self.target_player_idx,
@@ -73,6 +73,8 @@ class PlayForcedDeal(GameCommand):
             my_card_idx=self.my_card_idx,
             their_set_idx=self.their_set_idx,
             their_card_idx=self.their_card_idx,
+            take_into_color=self.take_into_color,
+            give_into_color=self.give_into_color,
         )
 
     def validate(self, game: GameView) -> None:

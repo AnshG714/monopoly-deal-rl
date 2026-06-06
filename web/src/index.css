@@ -115,3 +115,29 @@ a:focus-visible {
   color: var(--color-muted);
   font-size: 0.9rem;
 }
+
+.monopoly-drop-aura {
+  border-color: rgba(74, 202, 0, 0.85) !important;
+  box-shadow:
+    0 0 0 3px rgba(74, 202, 0, 0.16),
+    0 0 22px rgba(74, 202, 0, 0.32),
+    0 8px 24px rgba(31, 41, 51, 0.08);
+  animation: monopoly-deal-aura 1.25s ease-in-out infinite;
+}
+
+@keyframes monopoly-deal-aura {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(74, 202, 0, 0.14),
+      0 0 18px rgba(74, 202, 0, 0.24),
+      0 8px 24px rgba(31, 41, 51, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(74, 202, 0, 0.2),
+      0 0 30px rgba(74, 202, 0, 0.42),
+      0 8px 24px rgba(31, 41, 51, 0.08);
+  }
+}

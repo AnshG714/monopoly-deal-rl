@@ -6,6 +6,7 @@ from models.cards.action import (
     ActionCard,
     ActionCardType,
     DebtCollector,
+    ForcedDeal,
     PassGo,
     SlyDeal,
 )
@@ -21,6 +22,7 @@ from models.game.commands import (
     PlayJustSayNo,
     PlayMoneyFromHand,
     PlayPassGo,
+    PlayForcedDeal,
     PlayRent,
     PlaySlyDeal,
 )
@@ -120,6 +122,46 @@ class LegalMovesTests(unittest.TestCase):
             moves[0],
             PlaySlyDeal(0, 1, 0, 0, Color.RED),
         )
+
+    def test_forced_deal_enumerates_cross_color_swap(self) -> None:
+        game = Game()
+        game.players[0].hand = [ForcedDeal()]
+        game.players[0].add_property_to_board(
+            SingleColorProperty(Color.RED, "Kentucky Avenue", [2, 3, 6], 3),
+            Color.RED,
+        )
+        game.players[1].add_property_to_board(
+            SingleColorProperty(Color.BLUE, "Boardwalk", [3, 8], 4),
+            Color.BLUE,
+        )
+
+        moves = [m for m in game.legal_moves() if isinstance(m, PlayForcedDeal)]
+        self.assertEqual(
+            moves,
+            [PlayForcedDeal(0, 1, 0, 0, 0, 0, Color.BLUE, Color.RED)],
+        )
+
+    def test_forced_deal_resolves_into_chosen_colors(self) -> None:
+        game = Game()
+        game.players[0].hand = [ForcedDeal()]
+        game.players[0].add_property_to_board(
+            SingleColorProperty(Color.RED, "Kentucky Avenue", [2, 3, 6], 3),
+            Color.RED,
+        )
+        game.players[1].add_property_to_board(
+            SingleColorProperty(Color.BLUE, "Boardwalk", [3, 8], 4),
+            Color.BLUE,
+        )
+
+        game.play_forced_deal(0, 1, 0, 0, 0, 0, Color.BLUE, Color.RED)
+        game.pass_just_say_no()
+
+        actor_pile = game.players[0].pile_at(0)
+        target_pile = game.players[1].pile_at(0)
+        self.assertEqual(actor_pile.color, Color.BLUE)
+        self.assertEqual(actor_pile.cards[0].name, "Boardwalk")
+        self.assertEqual(target_pile.color, Color.RED)
+        self.assertEqual(target_pile.cards[0].name, "Kentucky Avenue")
 
     def test_payment_due_includes_pay_and_just_say_no(self) -> None:
         game = Game()

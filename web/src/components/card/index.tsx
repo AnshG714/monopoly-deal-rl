@@ -78,6 +78,7 @@ export interface CardProps {
   draggable?: boolean;
   className?: string;
   onDragStart?: () => void;
+  onDragEnd?: () => void;
   onClick?: () => void;
 }
 
@@ -88,6 +89,7 @@ export function Card({
   draggable = false,
   className,
   onDragStart,
+  onDragEnd,
   onClick,
 }: CardProps) {
   const kind = visualKind(card);
@@ -96,6 +98,7 @@ export function Card({
 
   const viewportStyle: CardViewportStyle = {
     width: displayWidth,
+    height: `calc(${displayWidth} * ${CARD_DESIGN_HEIGHT_REM} / ${CARD_DESIGN_WIDTH_REM})`,
     aspectRatio: `${CARD_DESIGN_WIDTH_REM} / ${CARD_DESIGN_HEIGHT_REM}`,
     "--card-scale": `calc(${displayWidth} / ${CARD_DESIGN_WIDTH_REM}rem)`,
   };
@@ -123,6 +126,7 @@ export function Card({
         event.dataTransfer.effectAllowed = "move";
         onDragStart?.();
       }}
+      onDragEnd={() => onDragEnd?.()}
       onClick={
         onClick
           ? (event) => {

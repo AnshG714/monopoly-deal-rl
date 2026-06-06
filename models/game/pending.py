@@ -45,6 +45,8 @@ class ForcedDealSwapIntent:
     my_card_idx: int
     their_set_idx: int
     their_card_idx: int
+    take_into_color: Color
+    give_into_color: Color
 
 
 @dataclass

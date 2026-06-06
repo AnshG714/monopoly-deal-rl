@@ -3,7 +3,13 @@ from __future__ import annotations
 import unittest
 
 from models.cards.money import MoneyCard
+from models.cards.property import Color
 from models.game.game import Game
+from models.game.pending import (
+    ForcedDealPending,
+    ForcedDealSwapIntent,
+    JustSayNoNegotiation,
+)
 from serialization.moves import encode_moves
 from serialization.state import view_for_player
 
@@ -37,3 +43,27 @@ class SerializationTests(unittest.TestCase):
         first_kind = encoded[0]["kind"]
         game.apply(moves[0])
         self.assertIsNotNone(first_kind)
+
+    def test_forced_deal_pending_includes_destination_colors(self) -> None:
+        game = Game()
+        game.pending = ForcedDealPending(
+            actor_idx=0,
+            swap=ForcedDealSwapIntent(
+                target_player_idx=1,
+                my_set_idx=0,
+                my_card_idx=0,
+                their_set_idx=0,
+                their_card_idx=0,
+                take_into_color=Color.BLUE,
+                give_into_color=Color.RED,
+            ),
+            jsn=JustSayNoNegotiation.opening_after_declare(
+                defender_idx=1,
+                actor_idx=0,
+            ),
+        )
+
+        pending = view_for_player(game, viewer_idx=0)["pending"]
+
+        self.assertEqual(pending["take_into_color"], "blue")
+        self.assertEqual(pending["give_into_color"], "red")

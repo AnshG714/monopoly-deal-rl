@@ -184,6 +184,8 @@ class Game(GameView):
         my_card_idx: int,
         their_set_idx: int,
         their_card_idx: int,
+        take_into_color: Color,
+        give_into_color: Color,
     ) -> None:
         """Play Forced Deal with a concrete swap target; target may Just Say No."""
         self.apply(
@@ -194,6 +196,8 @@ class Game(GameView):
                 my_card_idx=my_card_idx,
                 their_set_idx=their_set_idx,
                 their_card_idx=their_card_idx,
+                take_into_color=take_into_color,
+                give_into_color=give_into_color,
             )
         )
 

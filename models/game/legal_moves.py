@@ -251,18 +251,28 @@ def _enumerate_forced_deal(game: GameView, hand_index: int) -> list[GameCommand]
                     if their_pile.is_complete():
                         continue
                     for their_card_idx in range(len(their_pile.cards)):
-                        _append_if_legal(
-                            moves,
-                            PlayForcedDeal(
-                                hand_index,
-                                target_player_idx,
-                                my_set_idx,
-                                my_card_idx,
-                                their_set_idx,
-                                their_card_idx,
-                            ),
-                            game,
-                        )
+                        my_card = my_pile.cards[my_card_idx]
+                        their_card = their_pile.cards[their_card_idx]
+                        for take_into_color in Color:
+                            if not their_card.can_count_as(take_into_color):
+                                continue
+                            for give_into_color in Color:
+                                if not my_card.can_count_as(give_into_color):
+                                    continue
+                                _append_if_legal(
+                                    moves,
+                                    PlayForcedDeal(
+                                        hand_index,
+                                        target_player_idx,
+                                        my_set_idx,
+                                        my_card_idx,
+                                        their_set_idx,
+                                        their_card_idx,
+                                        take_into_color,
+                                        give_into_color,
+                                    ),
+                                    game,
+                                )
     return moves
 
 

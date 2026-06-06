@@ -51,6 +51,7 @@ export interface GameView {
   plays_this_turn: number;
   deck_size: number;
   discard_size: number;
+  discard_top: Card | null;
   pending: PendingState | null;
   players: Player[];
 }

@@ -44,13 +44,17 @@ function DialogOverlay({
   )
 }
 
+type DialogSize = 'default' | 'wide'
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  size = 'default',
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  size?: DialogSize
 }) {
   return (
     <DialogPortal>
@@ -58,14 +62,15 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg sm:max-w-lg',
+          'fixed top-1/2 left-1/2 z-50 max-h-[85vh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg',
+          size === 'wide' ? 'sm:max-w-2xl' : 'sm:max-w-lg',
           className,
         )}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring disabled:pointer-events-none">
+          <DialogPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring disabled:pointer-events-none">
             <XIcon />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
@@ -79,7 +84,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      className={cn('mb-4 flex flex-col gap-2 text-left', className)}
       {...props}
     />
   )
@@ -89,7 +94,10 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
+      className={cn(
+        'mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        className,
+      )}
       {...props}
     />
   )
@@ -102,7 +110,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-lg font-semibold leading-none', className)}
+      className={cn('text-lg font-semibold', className)}
       {...props}
     />
   )

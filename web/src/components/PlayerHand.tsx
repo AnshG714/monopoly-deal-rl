@@ -11,6 +11,11 @@ interface PlayerHandProps {
   cards: HandCard[];
   size?: CardSize;
   className?: string;
+  canPlayAsMoney?: (handIndex: number) => boolean;
+  canPlayAsProperty?: (handIndex: number) => boolean;
+  canPlayAsAction?: (handIndex: number) => boolean;
+  onDragStart?: (handIndex: number) => void;
+  onDragEnd?: () => void;
 }
 
 function fanRotation(index: number, total: number, spreadDeg: number): number {
@@ -29,7 +34,16 @@ const COLLAPSED_SCALE = 0.85;
 const COLLAPSED_OVERLAP_REM = -8.25;
 const EXPANDED_OVERLAP_REM = -4.25;
 
-export function PlayerHand({ cards, size = "lg", className }: PlayerHandProps) {
+export function PlayerHand({
+  cards,
+  size = "lg",
+  className,
+  canPlayAsMoney,
+  canPlayAsProperty,
+  canPlayAsAction,
+  onDragStart,
+  onDragEnd,
+}: PlayerHandProps) {
   const [expanded, setExpanded] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedCard, setSelectedCard] = useState<HandCard | null>(null);
@@ -71,6 +85,13 @@ export function PlayerHand({ cards, size = "lg", className }: PlayerHandProps) {
             <Card
               card={card}
               size={size}
+              draggable={
+                (canPlayAsMoney?.(card.index) ?? false) ||
+                (canPlayAsProperty?.(card.index) ?? false) ||
+                (canPlayAsAction?.(card.index) ?? false)
+              }
+              onDragStart={() => onDragStart?.(card.index)}
+              onDragEnd={onDragEnd}
               onClick={() => setSelectedCard(card)}
             />
           </div>
