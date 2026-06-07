@@ -2,6 +2,12 @@ import { useMemo } from "react";
 
 import type { GameStateResponse } from "@/api/types";
 import {
+  canDiscard,
+  findDiscardMove,
+  findDiscardMoves,
+  requiredDiscardCount,
+} from "@/lib/discardCards";
+import {
   canEndTurn,
   canPlayAsMoney,
   canPlayProperty,
@@ -49,6 +55,11 @@ export function useLegalMoves(game: GameStateResponse | null) {
         findAutoActionPileMove(legalMoves, handIndex),
       endTurnMove: () => findEndTurnMove(legalMoves),
       canEndTurn: () => canAct && canEndTurn(legalMoves),
+      discardMoves: () => findDiscardMoves(legalMoves),
+      canDiscard: () => canAct && canDiscard(legalMoves),
+      requiredDiscardCount: () => requiredDiscardCount(legalMoves),
+      findDiscardMove: (handIndices: number[]) =>
+        findDiscardMove(legalMoves, handIndices),
       findMove: (kind: string, params?: Record<string, unknown>) =>
         findMove(legalMoves, kind, params),
       findMoves: (kind: string, params?: Record<string, unknown>) =>

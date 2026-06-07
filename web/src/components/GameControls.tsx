@@ -7,12 +7,15 @@ interface GameControlsProps {
   hasGame: boolean;
   gameOver: boolean;
   canEndTurn: boolean;
+  canDiscard?: boolean;
+  discardCount?: number;
   isMock?: boolean;
   winnerName?: string;
   pendingActionLabel?: string;
   onStartGame: () => void;
   onEndGame: () => void;
   onNextTurn: () => void;
+  onOpenDiscard?: () => void;
   onReopenPendingAction?: () => void;
   onLoadMockScenario?: (scenarioId: string) => void;
 }
@@ -22,15 +25,24 @@ export function GameControls({
   hasGame,
   gameOver,
   canEndTurn,
+  canDiscard = false,
+  discardCount = 0,
   isMock = false,
   winnerName,
   pendingActionLabel,
   onStartGame,
   onEndGame,
   onNextTurn,
+  onOpenDiscard,
   onReopenPendingAction,
   onLoadMockScenario,
 }: GameControlsProps) {
+  const discardLabel =
+    discardCount === 1
+      ? "Discard 1 card"
+      : discardCount > 1
+        ? `Discard ${discardCount} cards`
+        : "Discard cards";
   const showMockPicker =
     import.meta.env.DEV && onLoadMockScenario !== undefined;
   return (
@@ -92,6 +104,16 @@ export function GameControls({
             disabled={loading}
           >
             {pendingActionLabel}
+          </Button>
+        )}
+        {canDiscard && onOpenDiscard && (
+          <Button
+            size="sm"
+            variant="default"
+            onClick={onOpenDiscard}
+            disabled={loading}
+          >
+            {discardLabel}
           </Button>
         )}
         <Button

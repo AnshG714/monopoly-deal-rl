@@ -15,7 +15,8 @@ export type GameOverlay =
   | { kind: "none" }
   | ({ kind: "wild-picker" } & MovePickerState)
   | ({ kind: "action-picker" } & MovePickerState)
-  | ({ kind: "deal-action"; dealKind: DealActionKind } & MovePickerState);
+  | ({ kind: "deal-action"; dealKind: DealActionKind } & MovePickerState)
+  | { kind: "discard-picker" };
 
 interface GameUiState {
   game: GameStateResponse | null;

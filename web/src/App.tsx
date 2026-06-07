@@ -2,6 +2,7 @@ import { ActionPile } from "@/components/ActionPile";
 import { ActionPlayDialog } from "@/components/ActionPlayDialog";
 import { Confetti } from "@/components/Confetti";
 import { DealActionDialog } from "@/components/DealActionDialog";
+import { DiscardCardsDialog } from "@/components/DiscardCardsDialog";
 import { DebtPaymentDialog } from "@/components/DebtPaymentDialog";
 import { GameControls } from "@/components/GameControls";
 import { JustSayNoDialog } from "@/components/JustSayNoDialog";
@@ -41,6 +42,7 @@ export default function App() {
   const wildPicker = overlay.kind === "wild-picker" ? overlay : null;
   const actionPicker = overlay.kind === "action-picker" ? overlay : null;
   const dealAction = overlay.kind === "deal-action" ? overlay : null;
+  const discardPicker = overlay.kind === "discard-picker";
   const paymentDue =
     pendingPrompt?.kind === "payment" ? pendingPrompt.payment : null;
   const jsnInterrupt =
@@ -166,6 +168,9 @@ export default function App() {
         hasGame={game !== null}
         gameOver={game?.is_over ?? false}
         canEndTurn={legal.canEndTurn()}
+        canDiscard={legal.canDiscard()}
+        discardCount={legal.requiredDiscardCount()}
+        onOpenDiscard={() => openOverlay({ kind: "discard-picker" })}
         isMock={isMock}
         winnerName={winner?.name}
         pendingActionLabel={pendingActionLabel}
@@ -310,6 +315,21 @@ export default function App() {
           actor={viewer}
           opponent={opponent}
           existingColors={viewer.property_sets.map((pile) => pile.color)}
+          onConfirm={(moveId) => {
+            closeOverlay();
+            void playMove(moveId);
+          }}
+          onCancel={closeOverlay}
+        />
+      )}
+
+      {discardPicker && viewer?.hand.cards && (
+        <DiscardCardsDialog
+          key={`discard:${viewer.hand.cards.map((card) => card.index).join(",")}`}
+          open
+          handCards={viewer.hand.cards}
+          legalMoves={legal.legalMoves}
+          requiredCount={legal.requiredDiscardCount()}
           onConfirm={(moveId) => {
             closeOverlay();
             void playMove(moveId);
