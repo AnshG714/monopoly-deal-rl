@@ -95,7 +95,7 @@ class PlayForcedDeal(GameCommand):
             pending=ForcedDealPending(
                 actor_idx=actor_idx,
                 swap=self._build_intent(game),
-                jsn=JustSayNoNegotiation.opening_after_declare(
+                jsn=JustSayNoNegotiation.open_negotiation(
                     defender_idx=self.target_player_idx,
                     actor_idx=actor_idx,
                 ),

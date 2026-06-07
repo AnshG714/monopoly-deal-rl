@@ -66,7 +66,7 @@ class PlayDealBreaker(GameCommand):
             pending=DealBreakerPending(
                 actor_idx=actor_idx,
                 theft=self._build_intent(game),
-                jsn=JustSayNoNegotiation.opening_after_declare(
+                jsn=JustSayNoNegotiation.open_negotiation(
                     defender_idx=self.victim_idx,
                     actor_idx=actor_idx,
                 ),

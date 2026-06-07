@@ -18,9 +18,7 @@ class JustSayNoNegotiation:
     chain_started: bool
 
     @staticmethod
-    def opening_after_declare(
-        defender_idx: int, actor_idx: int
-    ) -> JustSayNoNegotiation:
+    def open_negotiation(defender_idx: int, actor_idx: int) -> JustSayNoNegotiation:
         """Victim may play JSN or allow the action (e.g. Sly Deal declared)."""
         return JustSayNoNegotiation(
             defender_idx=defender_idx,

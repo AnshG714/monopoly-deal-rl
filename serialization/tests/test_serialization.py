@@ -57,7 +57,7 @@ class SerializationTests(unittest.TestCase):
                 take_into_color=Color.BLUE,
                 give_into_color=Color.RED,
             ),
-            jsn=JustSayNoNegotiation.opening_after_declare(
+            jsn=JustSayNoNegotiation.open_negotiation(
                 defender_idx=1,
                 actor_idx=0,
             ),
