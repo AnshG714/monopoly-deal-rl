@@ -3,7 +3,6 @@ from __future__ import annotations
 import random
 
 from ..cards.base import Card
-from ..cards.property import Color
 from ..cards.registry import build_full_deck
 from ..player import Player
 from .commands import (
@@ -11,23 +10,6 @@ from .commands import (
     GameCommand,
     GameView,
     INITIAL_HAND_SIZE,
-    DiscardCards,
-    PassJustSayNo,
-    PayDebt,
-    PlayDealBreaker,
-    PlayDebtCollector,
-    PlayForcedDeal,
-    PlayHotel,
-    PlayHouse,
-    PlayItsMyBirthday,
-    PlayJustSayNo,
-    MoveWildProperty,
-    PlayMoneyFromHand,
-    PlayPassGo,
-    PlayPropertyFromHand,
-    PlayDoubleRent,
-    PlayRent,
-    PlaySlyDeal,
     start_player_turn,
 )
 from .legal_moves import legal_moves
@@ -83,133 +65,6 @@ class Game(GameView):
     def apply(self, command: GameCommand) -> None:
         """Apply a player-facing command after its own legality check."""
         command.apply(self)
-
-    def play_money_from_hand(self, hand_index: int) -> None:
-        """Play a money/action/rent card from hand into your bank."""
-        self.apply(PlayMoneyFromHand(hand_index))
-
-    def play_pass_go(self, hand_index: int) -> None:
-        """Play Pass Go from hand."""
-        self.apply(PlayPassGo(hand_index))
-
-    def play_property_from_hand(self, hand_index: int, into_color: Color) -> None:
-        """Play a property or property-wild from hand into a pile for ``into_color``."""
-        self.apply(PlayPropertyFromHand(hand_index, into_color))
-
-    def move_wild_property(
-        self, from_set_idx: int, card_idx: int, into_color: Color
-    ) -> None:
-        """Move a board wild from one pile to another color pile (costs one play)."""
-        self.apply(MoveWildProperty(from_set_idx, card_idx, into_color))
-
-    def play_house(self, hand_index: int, target_set_idx: int) -> None:
-        """Play House from hand onto one of your complete non-utility/non-railroad sets."""
-        self.apply(PlayHouse(hand_index, target_set_idx))
-
-    def play_hotel(self, hand_index: int, target_set_idx: int) -> None:
-        """Play Hotel from hand onto one of your complete sets with an existing house."""
-        self.apply(PlayHotel(hand_index, target_set_idx))
-
-    def play_debt_collector(self, hand_index: int, target_player_idx: int) -> None:
-        """Force another player to pay you $5M (they may Just Say No)."""
-        self.apply(PlayDebtCollector(hand_index, target_player_idx))
-
-    def play_its_my_birthday(self, hand_index: int) -> None:
-        """All other players owe you $2M each; opens the first debt (multi-player chaining TBD)."""
-        self.apply(PlayItsMyBirthday(hand_index))
-
-    def play_rent(self, hand_index: int, victim_idx: int, charged_color: Color) -> None:
-        """Play a rent card from hand and charge the victim for ``charged_color`` on their board."""
-        self.apply(PlayRent(hand_index, victim_idx, charged_color))
-
-    def play_double_rent(
-        self,
-        double_rent_hand_index: int,
-        rent_hand_index: int,
-        victim_idx: int,
-        charged_color: Color,
-    ) -> None:
-        """Play Double the Rent and a rent card (two plays); charge double the normal rent."""
-        self.apply(
-            PlayDoubleRent(
-                double_rent_hand_index, rent_hand_index, victim_idx, charged_color
-            )
-        )
-
-    def pay_debt(
-        self,
-        money_pile_indices: list[int],
-        property_card_indices: list[tuple[int, int]] | None = None,
-    ) -> None:
-        """Debtor pays by moving chosen bank/property cards to the creditor.
-
-        If no JSN chain is open, paying alone resolves the debt. If a chain is active
-        and it is the debtor's turn to respond, paying counts as conceding the JSN duel
-        (same outcome as ``pass_just_say_no`` then pay).
-        """
-        self.apply(PayDebt(money_pile_indices, property_card_indices or []))
-
-    def play_just_say_no(self, hand_index: int) -> None:
-        """Play Just Say No from hand (out-of-turn during an interrupt). Chains alternate actor/defender."""
-        self.apply(PlayJustSayNo(hand_index))
-
-    def pass_just_say_no(self) -> None:
-        """Decline to play another Just Say No; resolves the interrupt per chain rules."""
-        self.apply(PassJustSayNo())
-
-    def play_sly_deal(
-        self,
-        hand_index: int,
-        target_player_idx: int,
-        target_set_idx: int,
-        target_card_idx: int,
-        into_color: Color,
-    ) -> None:
-        """Play Sly Deal with a concrete steal target; victim may Just Say No."""
-        self.apply(
-            PlaySlyDeal(
-                hand_index=hand_index,
-                target_player_idx=target_player_idx,
-                target_set_idx=target_set_idx,
-                target_card_idx=target_card_idx,
-                into_color=into_color,
-            )
-        )
-
-    def play_forced_deal(
-        self,
-        hand_index: int,
-        target_player_idx: int,
-        my_set_idx: int,
-        my_card_idx: int,
-        their_set_idx: int,
-        their_card_idx: int,
-        take_into_color: Color,
-        give_into_color: Color,
-    ) -> None:
-        """Play Forced Deal with a concrete swap target; target may Just Say No."""
-        self.apply(
-            PlayForcedDeal(
-                hand_index=hand_index,
-                target_player_idx=target_player_idx,
-                my_set_idx=my_set_idx,
-                my_card_idx=my_card_idx,
-                their_set_idx=their_set_idx,
-                their_card_idx=their_card_idx,
-                take_into_color=take_into_color,
-                give_into_color=give_into_color,
-            )
-        )
-
-    def play_deal_breaker(
-        self, hand_index: int, victim_idx: int, victim_set_idx: int
-    ) -> None:
-        """Play Deal Breaker against a concrete complete set; victim may Just Say No."""
-        self.apply(PlayDealBreaker(hand_index, victim_idx, victim_set_idx))
-
-    def discard_cards(self, hand_indices: list[int]) -> None:
-        """Discard excess cards (down to 7) at end of turn; does not use a play."""
-        self.apply(DiscardCards(hand_indices))
 
     def current_player(self) -> Player:
         return self.players[self.current_player_idx]
