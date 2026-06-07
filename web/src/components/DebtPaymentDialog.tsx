@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { Card, HandCard, LegalMove, Player, PropertySet } from "@/api/types";
 import { Card as CardView } from "@/components/card";
@@ -132,12 +132,6 @@ export function DebtPaymentDialog({
   const [selectedProperties, setSelectedProperties] = useState<
     [number, number][]
   >([]);
-
-  useEffect(() => {
-    if (!open) return;
-    setSelectedMoney([]);
-    setSelectedProperties([]);
-  }, [open, amountOwed]);
 
   const selectedTotal = useMemo(
     () =>

@@ -1,13 +1,7 @@
-import { useEffect, useState } from "react";
-
-import type { LegalMove } from "@/api/types";
 import { ActionPile } from "@/components/ActionPile";
 import { ActionPlayDialog } from "@/components/ActionPlayDialog";
 import { Confetti } from "@/components/Confetti";
-import {
-  DealActionDialog,
-  type DealActionKind,
-} from "@/components/DealActionDialog";
+import { DealActionDialog } from "@/components/DealActionDialog";
 import { DebtPaymentDialog } from "@/components/DebtPaymentDialog";
 import { GameControls } from "@/components/GameControls";
 import { JustSayNoDialog } from "@/components/JustSayNoDialog";
@@ -19,13 +13,7 @@ import { WildPropertyColorDialog } from "@/components/WildPropertyColorDialog";
 import { Flex } from "@/components/ui/flex";
 import { useGame } from "@/hooks/useGame";
 import { useLegalMoves } from "@/hooks/useLegalMoves";
-import { viewerJustSayNoInterrupt } from "@/lib/interrupts";
-import { viewerMustPayDebt } from "@/lib/payDebt";
-
-interface MovePickerState {
-  handIndex: number;
-  moves: LegalMove[];
-}
+import { dealActionKind } from "@/lib/dealActions";
 
 export default function App() {
   const {
@@ -37,57 +25,30 @@ export default function App() {
     playMove,
     loadMockScenario,
     isMock,
+    draggedHandIndex,
+    overlay,
+    pendingPrompt,
+    pendingPromptOpen,
+    startDrag,
+    endDrag,
+    openOverlay,
+    closeOverlay,
+    dismissPrompt,
+    reopenPrompt,
   } = useGame();
   const legal = useLegalMoves(game);
-  const [draggedHandIndex, setDraggedHandIndex] = useState<number | null>(null);
-  const [wildPicker, setWildPicker] = useState<MovePickerState | null>(null);
-  const [actionPicker, setActionPicker] = useState<MovePickerState | null>(
-    null,
-  );
-  const [dealAction, setDealAction] = useState<{
-    handIndex: number;
-    kind: DealActionKind;
-    moves: LegalMove[];
-  } | null>(null);
-  const [pendingModalDismissed, setPendingModalDismissed] = useState(false);
 
-  const paymentDue = game ? viewerMustPayDebt(game) : null;
-  const jsnInterrupt = game
-    ? viewerJustSayNoInterrupt(game, legal.legalMoves)
-    : null;
+  const wildPicker = overlay.kind === "wild-picker" ? overlay : null;
+  const actionPicker = overlay.kind === "action-picker" ? overlay : null;
+  const dealAction = overlay.kind === "deal-action" ? overlay : null;
+  const paymentDue =
+    pendingPrompt?.kind === "payment" ? pendingPrompt.payment : null;
+  const jsnInterrupt =
+    pendingPrompt?.kind === "jsn" ? pendingPrompt.interrupt : null;
   const showJsnModal = jsnInterrupt !== null;
-  const showDebtModal = paymentDue !== null && !showJsnModal;
-  const pendingModalOpen =
-    (showDebtModal || showJsnModal) && !pendingModalDismissed;
-
-  const pendingPromptKey =
-    jsnInterrupt?.key ??
-    (paymentDue
-      ? `PaymentDue:${paymentDue.creditor_idx}:${paymentDue.debtor_idx}:${paymentDue.amount_m}`
-      : null);
-
-  const pendingActionKey =
-    game && pendingPromptKey
-      ? [
-          game.game_id,
-          pendingPromptKey,
-          game.state.current_player_idx,
-          game.state.acting_player_idx,
-          game.state.plays_this_turn,
-          game.state.discard_size,
-        ].join(":")
-      : null;
-
-  useEffect(() => {
-    setPendingModalDismissed(false);
-  }, [pendingActionKey]);
-
-  const pendingActionLabel = (() => {
-    if (!pendingModalDismissed) return undefined;
-    if (jsnInterrupt) return `Respond: ${jsnInterrupt.title}`;
-    if (paymentDue) return `Pay $${paymentDue.amount_m}M`;
-    return undefined;
-  })();
+  const showDebtModal = paymentDue !== null;
+  const pendingActionLabel =
+    pendingPrompt && !pendingPromptOpen ? pendingPrompt.label : undefined;
 
   const viewer = game?.state.players.find(
     (player) => player.idx === game.viewer,
@@ -118,66 +79,61 @@ export default function App() {
   function handleBankDrop() {
     if (draggedHandIndex === null) return;
     const move = legal.playMoneyMove(draggedHandIndex);
+    endDrag();
     if (move) void playMove(move.id);
-    setDraggedHandIndex(null);
   }
 
   function handlePropertyDrop() {
     if (draggedHandIndex === null) return;
     const moves = legal.playPropertyMoves(draggedHandIndex);
-    if (moves.length === 0) return;
-
-    if (moves.length === 1) {
-      void playMove(moves[0].id);
-      setDraggedHandIndex(null);
+    if (moves.length === 0) {
+      endDrag();
       return;
     }
 
-    setWildPicker({ handIndex: draggedHandIndex, moves });
-    setDraggedHandIndex(null);
-  }
-
-  function dealActionKind(
-    actionType: string | undefined,
-  ): DealActionKind | null {
-    if (
-      actionType === "sly_deal" ||
-      actionType === "forced_deal" ||
-      actionType === "deal_breaker"
-    ) {
-      return actionType;
+    if (moves.length === 1) {
+      endDrag();
+      void playMove(moves[0].id);
+      return;
     }
-    return null;
+
+    openOverlay({ kind: "wild-picker", handIndex: draggedHandIndex, moves });
   }
 
   function handleActionDrop() {
     if (draggedHandIndex === null) return;
     const moves = legal.actionPileMoves(draggedHandIndex);
-    if (moves.length === 0) return;
+    if (moves.length === 0) {
+      endDrag();
+      return;
+    }
 
     const handCard = viewer?.hand.cards?.find(
       (card) => card.index === draggedHandIndex,
     );
     const kind = dealActionKind(handCard?.action_type);
     if (kind) {
-      setDealAction({ handIndex: draggedHandIndex, kind, moves });
-      setDraggedHandIndex(null);
+      openOverlay({
+        kind: "deal-action",
+        handIndex: draggedHandIndex,
+        dealKind: kind,
+        moves,
+      });
       return;
     }
 
     if (moves.length === 1) {
+      endDrag();
       void playMove(moves[0].id);
-      setDraggedHandIndex(null);
       return;
     }
 
-    setActionPicker({ handIndex: draggedHandIndex, moves });
-    setDraggedHandIndex(null);
+    openOverlay({ kind: "action-picker", handIndex: draggedHandIndex, moves });
   }
 
   function handleActionSelect(moveId: number) {
+    closeOverlay();
     void playMove(moveId);
-    setActionPicker(null);
   }
 
   function handleWildColorSelect(color: string) {
@@ -185,13 +141,22 @@ export default function App() {
     const move = wildPicker.moves.find(
       (candidate) => candidate.params.into_color === color,
     );
+    closeOverlay();
     if (move) void playMove(move.id);
-    setWildPicker(null);
   }
 
   function handleNextTurn() {
     const move = legal.endTurnMove();
     if (move) void playMove(move.id);
+  }
+
+  function handlePendingMove(moveId: number) {
+    if (pendingPrompt) dismissPrompt(pendingPrompt.id);
+    void playMove(moveId);
+  }
+
+  function handlePendingDismiss() {
+    if (pendingPrompt) dismissPrompt(pendingPrompt.id);
   }
 
   return (
@@ -208,9 +173,7 @@ export default function App() {
         onEndGame={endGame}
         onNextTurn={handleNextTurn}
         onReopenPendingAction={
-          showDebtModal || showJsnModal
-            ? () => setPendingModalDismissed(false)
-            : undefined
+          pendingPrompt ? reopenPrompt : undefined
         }
         onLoadMockScenario={loadMockScenario}
       />
@@ -297,17 +260,18 @@ export default function App() {
                 canPlayAsMoney={legal.canPlayAsMoney}
                 canPlayAsProperty={legal.canPlayProperty}
                 canPlayAsAction={legal.canPlayAction}
-                onDragStart={setDraggedHandIndex}
-                onDragEnd={() => setDraggedHandIndex(null)}
+                onDragStart={startDrag}
+                onDragEnd={endDrag}
               />
             )}
           </Flex>
         </Flex>
       )}
 
-      {showDebtModal && paymentDue && viewer?.hand.cards && (
+      {showDebtModal && pendingPromptOpen && paymentDue && viewer?.hand.cards && (
         <DebtPaymentDialog
-          open={pendingModalOpen}
+          key={pendingPrompt?.id}
+          open
           amountOwed={paymentDue.amount_m}
           creditorName={
             game?.state.players.find(
@@ -317,45 +281,40 @@ export default function App() {
           player={viewer}
           handCards={viewer.hand.cards}
           legalMoves={legal.legalMoves}
-          onConfirm={(moveId) => {
-            setPendingModalDismissed(true);
-            void playMove(moveId);
-          }}
-          onPlayJustSayNo={(moveId) => {
-            setPendingModalDismissed(true);
-            void playMove(moveId);
-          }}
-          onCancel={() => setPendingModalDismissed(true)}
+          onConfirm={handlePendingMove}
+          onPlayJustSayNo={handlePendingMove}
+          onCancel={handlePendingDismiss}
         />
       )}
 
-      {showJsnModal && jsnInterrupt && viewer?.hand.cards && (
+      {showJsnModal && pendingPromptOpen && jsnInterrupt && viewer?.hand.cards && (
         <JustSayNoDialog
-          open={pendingModalOpen}
+          key={pendingPrompt?.id}
+          open
           interrupt={jsnInterrupt}
           handCards={viewer.hand.cards}
           legalMoves={legal.legalMoves}
-          onPlayMove={(moveId) => {
-            setPendingModalDismissed(true);
-            void playMove(moveId);
-          }}
-          onCancel={() => setPendingModalDismissed(true)}
+          onPlayMove={handlePendingMove}
+          onCancel={handlePendingDismiss}
         />
       )}
 
       {dealAction && game && viewer && opponent && (
         <DealActionDialog
+          key={`${dealAction.dealKind}:${dealAction.handIndex}:${dealAction.moves
+            .map((move) => move.id)
+            .join(",")}`}
           open
-          kind={dealAction.kind}
+          kind={dealAction.dealKind}
           moves={dealAction.moves}
           actor={viewer}
           opponent={opponent}
           existingColors={viewer.property_sets.map((pile) => pile.color)}
           onConfirm={(moveId) => {
+            closeOverlay();
             void playMove(moveId);
-            setDealAction(null);
           }}
-          onCancel={() => setDealAction(null)}
+          onCancel={closeOverlay}
         />
       )}
 
@@ -366,14 +325,14 @@ export default function App() {
           creditorPropertySets={viewer.property_sets}
           moves={actionPicker.moves}
           onSelect={handleActionSelect}
-          onCancel={() => setActionPicker(null)}
+          onCancel={closeOverlay}
         />
       )}
 
       <WildPropertyColorDialog
         open={wildPicker !== null}
         onOpenChange={(open) => {
-          if (!open) setWildPicker(null);
+          if (!open) closeOverlay();
         }}
         colors={
           wildPicker

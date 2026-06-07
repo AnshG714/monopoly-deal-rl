@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { LegalMove, Player } from "@/api/types";
 import { COLOR_MAP } from "@/components/card/colors";
@@ -25,8 +25,7 @@ import {
   slyDealTargetCards,
   type PropertyRef,
 } from "@/lib/propertyTargets";
-
-export type DealActionKind = "sly_deal" | "forced_deal" | "deal_breaker";
+import type { DealActionKind } from "@/lib/dealActions";
 
 interface DealActionDialogProps {
   open: boolean;
@@ -72,15 +71,6 @@ export function DealActionDialog({
   const [theirCard, setTheirCard] = useState<PropertyRef | null>(null);
   const [myCard, setMyCard] = useState<PropertyRef | null>(null);
   const [selectedSetIdx, setSelectedSetIdx] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    setSlyStep("pick-their-card");
-    setForcedStep("pick-my-card");
-    setTheirCard(null);
-    setMyCard(null);
-    setSelectedSetIdx(null);
-  }, [open, kind, moves]);
 
   function handleTheirCardSelect(setIdx: number, cardIdx: number) {
     if (kind === "sly_deal") {
