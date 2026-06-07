@@ -77,6 +77,28 @@ def choose_move(game: Game) -> GameCommand:
     return _choose_main_phase(game, moves)
 
 
+def dominated_money_hand_indices(game: Game) -> set[int]:
+    """Hand indices where banking is dominated by a charge/action on the same card."""
+    dominated: set[int] = set()
+    for move in game.legal_moves():
+        if isinstance(move, PlayItsMyBirthday):
+            dominated.add(move.hand_index)
+        elif isinstance(move, PlayDebtCollector):
+            dominated.add(move.hand_index)
+        elif isinstance(move, PlayRent):
+            dominated.add(move.hand_index)
+        elif isinstance(move, PlayDoubleRent):
+            dominated.add(move.double_rent_hand_index)
+            dominated.add(move.rent_hand_index)
+    return dominated
+
+
+def is_dominated_money_play(game: Game, move: GameCommand) -> bool:
+    if not isinstance(move, PlayMoneyFromHand):
+        return False
+    return move.hand_index in dominated_money_hand_indices(game)
+
+
 def _choose_main_phase(game: Game, moves: list[GameCommand]) -> GameCommand:
     # Walk priorities 1→5; first tier with a matching legal move wins.
     for picker in (
@@ -725,11 +747,17 @@ def _is_single_color_property(card: Card) -> bool:
 
 
 def _can_play_as_money(card: Card) -> bool:
+    if isinstance(card, (RentCard, WildRentCard)):
+        return False
     if isinstance(card, ActionCard):
-        # Never bank your best defensive / offensive action cards.
+        # Charge-only or too valuable to dump as face value; situational cards
+        # (Forced Deal, Sly Deal, House, Hotel) stay eligible for priority 4.
         return card.action_type not in (
             ActionCardType.JUST_SAY_NO,
             ActionCardType.DEAL_BREAKER,
+            ActionCardType.ITS_MY_BIRTHDAY,
+            ActionCardType.DEBT_COLLECTOR,
+            ActionCardType.DOUBLE_RENT,
         )
     return card.type != CardType.PROPERTY
 

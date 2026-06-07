@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import type { LegalMove } from "@/api/types";
 import { ActionPile } from "@/components/ActionPile";
 import { ActionPlayDialog } from "@/components/ActionPlayDialog";
+import { Confetti } from "@/components/Confetti";
+import {
+  DealActionDialog,
+  type DealActionKind,
+} from "@/components/DealActionDialog";
 import { DebtPaymentDialog } from "@/components/DebtPaymentDialog";
 import { GameControls } from "@/components/GameControls";
 import { JustSayNoDialog } from "@/components/JustSayNoDialog";
@@ -39,6 +44,11 @@ export default function App() {
   const [actionPicker, setActionPicker] = useState<MovePickerState | null>(
     null,
   );
+  const [dealAction, setDealAction] = useState<{
+    handIndex: number;
+    kind: DealActionKind;
+    moves: LegalMove[];
+  } | null>(null);
   const [pendingModalDismissed, setPendingModalDismissed] = useState(false);
 
   const paymentDue = game ? viewerMustPayDebt(game) : null;
@@ -50,15 +60,27 @@ export default function App() {
   const pendingModalOpen =
     (showDebtModal || showJsnModal) && !pendingModalDismissed;
 
-  const pendingActionKey =
+  const pendingPromptKey =
     jsnInterrupt?.key ??
     (paymentDue
-      ? `PaymentDue:${paymentDue.creditor_idx}:${paymentDue.amount_m}`
+      ? `PaymentDue:${paymentDue.creditor_idx}:${paymentDue.debtor_idx}:${paymentDue.amount_m}`
       : null);
+
+  const pendingActionKey =
+    game && pendingPromptKey
+      ? [
+          game.game_id,
+          pendingPromptKey,
+          game.state.current_player_idx,
+          game.state.acting_player_idx,
+          game.state.plays_this_turn,
+          game.state.discard_size,
+        ].join(":")
+      : null;
 
   useEffect(() => {
     setPendingModalDismissed(false);
-  }, [pendingActionKey, game?.game_id]);
+  }, [pendingActionKey]);
 
   const pendingActionLabel = (() => {
     if (!pendingModalDismissed) return undefined;
@@ -115,10 +137,33 @@ export default function App() {
     setDraggedHandIndex(null);
   }
 
+  function dealActionKind(
+    actionType: string | undefined,
+  ): DealActionKind | null {
+    if (
+      actionType === "sly_deal" ||
+      actionType === "forced_deal" ||
+      actionType === "deal_breaker"
+    ) {
+      return actionType;
+    }
+    return null;
+  }
+
   function handleActionDrop() {
     if (draggedHandIndex === null) return;
     const moves = legal.actionPileMoves(draggedHandIndex);
     if (moves.length === 0) return;
+
+    const handCard = viewer?.hand.cards?.find(
+      (card) => card.index === draggedHandIndex,
+    );
+    const kind = dealActionKind(handCard?.action_type);
+    if (kind) {
+      setDealAction({ handIndex: draggedHandIndex, kind, moves });
+      setDraggedHandIndex(null);
+      return;
+    }
 
     if (moves.length === 1) {
       void playMove(moves[0].id);
@@ -298,6 +343,22 @@ export default function App() {
         />
       )}
 
+      {dealAction && game && viewer && opponent && (
+        <DealActionDialog
+          open
+          kind={dealAction.kind}
+          moves={dealAction.moves}
+          actor={viewer}
+          opponent={opponent}
+          existingColors={viewer.property_sets.map((pile) => pile.color)}
+          onConfirm={(moveId) => {
+            void playMove(moveId);
+            setDealAction(null);
+          }}
+          onCancel={() => setDealAction(null)}
+        />
+      )}
+
       {actionPicker && game && viewer && (
         <ActionPlayDialog
           open
@@ -336,6 +397,10 @@ export default function App() {
         >
           {error}
         </p>
+      )}
+
+      {game?.is_over && game.winner_idx !== null && (
+        <Confetti key={`${game.game_id}-${game.winner_idx}`} />
       )}
     </Flex>
   );

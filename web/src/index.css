@@ -141,3 +141,22 @@ a:focus-visible {
       0 8px 24px rgba(31, 41, 51, 0.08);
   }
 }
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(var(--confetti-drift), 110vh, 0)
+      rotate(var(--confetti-spin));
+    opacity: 0.85;
+  }
+}
+
+.confetti-piece {
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

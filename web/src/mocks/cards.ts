@@ -13,6 +13,42 @@ export function justSayNo(): Card {
   };
 }
 
+export function slyDeal(): Card {
+  return {
+    type: "action",
+    value: 3,
+    display_name: "Sly Deal",
+    action_type: "sly_deal",
+  };
+}
+
+export function forcedDeal(): Card {
+  return {
+    type: "action",
+    value: 3,
+    display_name: "Forced Deal",
+    action_type: "forced_deal",
+  };
+}
+
+export function dealBreaker(): Card {
+  return {
+    type: "action",
+    value: 5,
+    display_name: "Deal Breaker",
+    action_type: "deal_breaker",
+  };
+}
+
+export function wildProperty(): Card {
+  return {
+    type: "property",
+    value: 2,
+    display_name: "Property Wild",
+    property_kind: "wild",
+  };
+}
+
 export function property(
   name: string,
   color: string,
