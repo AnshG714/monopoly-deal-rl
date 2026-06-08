@@ -1,5 +1,7 @@
 # AI Monopoly Deal
 
+![Mid-game Monopoly Deal board](docs/images/mid-game-screenshot.png)
+
 This is a Python 3.13+ learning project for building a Monopoly Deal engine and,
 eventually, an AI player that can choose strong legal moves.
 
@@ -113,4 +115,3 @@ MIT Press, 2018.
 *[Information Set Monte Carlo Tree Search](https://doi.org/10.1109/TCIAIG.2012.2200894)*,
 IEEE Transactions on Computational Intelligence and AI in Games, 4(2),
 120-143, 2012.
-
