@@ -5,15 +5,13 @@ from __future__ import annotations
 import random
 import secrets
 
+from mcts.consts import DEFAULT_ITERS
 from mcts.solver import ISMCTSSolver
 from models.game.game import Game
 from serialization.moves import encode_moves
 from serialization.state import view_for_player
 
 from ..store.memory import GameSession, GameStore, default_store
-
-DEFAULT_MCTS_ITERATIONS = 500
-
 
 class GameNotFoundError(LookupError):
     pass
@@ -32,7 +30,7 @@ class GameService:
         self,
         store: GameStore | None = None,
         *,
-        default_mcts_iterations: int = DEFAULT_MCTS_ITERATIONS,
+        default_mcts_iterations: int = DEFAULT_ITERS,
     ) -> None:
         self._store = store or default_store
         self._default_mcts_iterations = default_mcts_iterations
