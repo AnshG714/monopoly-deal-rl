@@ -1,14 +1,16 @@
-"""Compare MCTS vs. heuristic performance on the same game."""
+"""Compare MCTS vs. the heuristic policy with paired, seeded games."""
 
 from __future__ import annotations
 
 import argparse
+import math
 import os
+import random
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
 from mcts.consts import DEFAULT_ITERS
 from mcts.solver import ISMCTSSolver
@@ -16,33 +18,221 @@ from models.game.commands import GameCommand
 from models.game.game import Game
 from rollout import choose_move
 
-DEFAULT_NUM_GAMES = 1000
+DEFAULT_NUM_GAMES = 100
+DEFAULT_SEED = 0
+MAX_STEPS = 10_000
 
 
-def run_game(
-    agent1: Callable[[Game], GameCommand],
-    agent2: Callable[[Game], GameCommand],
-) -> int:
-    """Play one game and return the winner index (0 or 1)."""
-    game = Game()
+@dataclass(frozen=True)
+class GameSpec:
+    seed: int
+    mcts_seat: int
+    mcts_iters: int
+    rollout_depth: int | None
+    max_candidate_moves: int | None
+    max_interrupt_moves: int | None
+    pruning_strategy: str
+    max_game_seconds: float | None
+    max_search_seconds: float | None
+
+
+@dataclass(frozen=True)
+class GameResult:
+    seed: int
+    mcts_seat: int
+    winner: int
+    timed_out: bool
+    steps: int
+    mcts_decisions: int
+    elapsed_s: float
+
+    @property
+    def mcts_won(self) -> bool:
+        return not self.timed_out and self.winner == self.mcts_seat
+
+
+@dataclass(frozen=True)
+class BenchmarkSummary:
+    results: tuple[GameResult, ...]
+    elapsed_s: float
+
+    @property
+    def games(self) -> int:
+        return len(self.results)
+
+    @property
+    def mcts_wins(self) -> int:
+        return sum(1 for result in self.results if result.mcts_won)
+
+    @property
+    def heuristic_wins(self) -> int:
+        return sum(
+            1
+            for result in self.results
+            if not result.timed_out and result.winner != result.mcts_seat
+        )
+
+    @property
+    def timeouts(self) -> int:
+        return sum(1 for result in self.results if result.timed_out)
+
+    @property
+    def win_rate(self) -> float:
+        completed_games = self.games - self.timeouts
+        if completed_games == 0:
+            return 0.0
+        return self.mcts_wins / completed_games
+
+    @property
+    def avg_game_s(self) -> float:
+        if self.games == 0:
+            return 0.0
+        return self.elapsed_s / self.games
+
+    @property
+    def mcts_decisions_per_s(self) -> float:
+        total_decisions = sum(result.mcts_decisions for result in self.results)
+        if self.elapsed_s <= 0:
+            return 0.0
+        return total_decisions / self.elapsed_s
+
+    @property
+    def wins_by_mcts_seat(self) -> dict[int, int]:
+        return {
+            seat: sum(
+                1
+                for result in self.results
+                if result.mcts_seat == seat and result.mcts_won
+            )
+            for seat in (0, 1)
+        }
+
+    @property
+    def games_by_mcts_seat(self) -> dict[int, int]:
+        return {
+            seat: sum(1 for result in self.results if result.mcts_seat == seat)
+            for seat in (0, 1)
+        }
+
+    @property
+    def approx_95_ci_half_width(self) -> float:
+        if self.games == 0:
+            return 0.0
+        z = 1.96
+        completed_games = self.games - self.timeouts
+        if completed_games == 0:
+            return 0.0
+        p = self.mcts_wins / completed_games
+        denominator = 1 + z**2 / completed_games
+        numerator = p * (1 - p) + z**2 / (4 * completed_games)
+        return z * math.sqrt(numerator / completed_games) / denominator
+
+
+def run_game(spec: GameSpec) -> GameResult:
+    """Play one seeded game and return the result from MCTS' perspective."""
+    game = Game(rng=random.Random(spec.seed))
     game.start_match()
 
-    while not game.is_over():
-        if game.acting_player_idx == 0:
-            move = agent1(game)
+    solver_seed = spec.seed * 2 + spec.mcts_seat
+    mcts = ISMCTSSolver(
+        iterations=spec.mcts_iters,
+        rng=random.Random(solver_seed),
+        rollout_depth=spec.rollout_depth,
+        max_candidate_moves=spec.max_candidate_moves,
+        max_interrupt_moves=spec.max_interrupt_moves,
+        pruning_strategy=spec.pruning_strategy,
+        max_search_seconds=spec.max_search_seconds,
+    )
+
+    steps = 0
+    mcts_decisions = 0
+    start = time.perf_counter()
+    while not game.is_over() and steps < MAX_STEPS:
+        elapsed_s = time.perf_counter() - start
+        if spec.max_game_seconds is not None and elapsed_s >= spec.max_game_seconds:
+            return GameResult(
+                seed=spec.seed,
+                mcts_seat=spec.mcts_seat,
+                winner=-1,
+                timed_out=True,
+                steps=steps,
+                mcts_decisions=mcts_decisions,
+                elapsed_s=elapsed_s,
+            )
+
+        if game.acting_player_idx == spec.mcts_seat:
+            move: GameCommand = mcts.search(game)
+            mcts_decisions += 1
         else:
-            move = agent2(game)
+            move = choose_move(game)
         game.apply(move)
+        steps += 1
 
     winner = game.winner_idx()
-    assert winner is not None
-    return winner
+    if winner is None:
+        raise RuntimeError(
+            f"Game did not finish after {MAX_STEPS} steps "
+            f"(seed={spec.seed}, mcts_seat={spec.mcts_seat})"
+        )
+
+    return GameResult(
+        seed=spec.seed,
+        mcts_seat=spec.mcts_seat,
+        winner=winner,
+        timed_out=False,
+        steps=steps,
+        mcts_decisions=mcts_decisions,
+        elapsed_s=time.perf_counter() - start,
+    )
 
 
-def _run_single_game(mcts_iters: int) -> int:
-    """Worker entry point: play one MCTS vs. heuristic game."""
-    mcts = ISMCTSSolver(iterations=mcts_iters)
-    return run_game(mcts.search, choose_move)
+def _build_specs(
+    *,
+    num_games: int,
+    seed: int,
+    mcts_iters: int,
+    rollout_depth: int | None,
+    max_candidate_moves: int | None,
+    max_interrupt_moves: int | None,
+    pruning_strategy: str,
+    max_game_seconds: float | None,
+    max_search_seconds: float | None,
+) -> list[GameSpec]:
+    if num_games < 2:
+        raise ValueError("paired benchmark needs at least 2 games")
+    if num_games % 2 != 0:
+        raise ValueError("paired benchmark needs an even --games value")
+
+    specs: list[GameSpec] = []
+    for pair_idx in range(num_games // 2):
+        game_seed = seed + pair_idx
+        specs.append(
+            GameSpec(
+                game_seed,
+                0,
+                mcts_iters,
+                rollout_depth,
+                max_candidate_moves,
+                max_interrupt_moves,
+                pruning_strategy,
+                max_game_seconds,
+                max_search_seconds,
+            )
+        )
+        specs.append(
+            GameSpec(
+                game_seed,
+                1,
+                mcts_iters,
+                rollout_depth,
+                max_candidate_moves,
+                max_interrupt_moves,
+                pruning_strategy,
+                max_game_seconds,
+                max_search_seconds,
+            )
+        )
+    return specs
 
 
 def compare_agents(
@@ -50,33 +240,117 @@ def compare_agents(
     num_games: int = DEFAULT_NUM_GAMES,
     workers: int | None = None,
     mcts_iters: int = DEFAULT_ITERS,
-) -> tuple[int, int]:
-    """Run games across worker processes (use ``workers=1`` for a single process)."""
+    seed: int = DEFAULT_SEED,
+    rollout_depth: int | None = None,
+    max_candidate_moves: int | None = None,
+    max_interrupt_moves: int | None = None,
+    pruning_strategy: str = "global",
+    max_game_seconds: float | None = None,
+    max_search_seconds: float | None = None,
+) -> BenchmarkSummary:
+    """Run paired, seat-swapped games across worker processes."""
+    specs = _build_specs(
+        num_games=num_games,
+        seed=seed,
+        mcts_iters=mcts_iters,
+        rollout_depth=rollout_depth,
+        max_candidate_moves=max_candidate_moves,
+        max_interrupt_moves=max_interrupt_moves,
+        pruning_strategy=pruning_strategy,
+        max_game_seconds=max_game_seconds,
+        max_search_seconds=max_search_seconds,
+    )
     if workers is None:
         workers = os.process_cpu_count() or 1
-    workers = min(workers, num_games)
+    workers = min(workers, len(specs))
 
-    wins1 = 0
-    wins2 = 0
-    completed = 0
+    results: list[GameResult] = []
 
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = [
-            executor.submit(_run_single_game, mcts_iters) for _ in range(num_games)
-        ]
-        for future in as_completed(futures):
-            winner = future.result()
-            if winner == 0:
-                wins1 += 1
-            else:
-                wins2 += 1
-            completed += 1
-            print(
-                f"{completed}/{num_games} — MCTS {wins1}, Heuristic {wins2}",
+    def record_progress(result: GameResult) -> None:
+        results.append(result)
+        mcts_wins = sum(1 for item in results if item.mcts_won)
+        heuristic_wins = sum(
+            1
+            for item in results
+            if not item.timed_out and item.winner != item.mcts_seat
+        )
+        timeouts = sum(1 for item in results if item.timed_out)
+        print(
+            f"{len(results)}/{len(specs)} - "
+            f"MCTS {mcts_wins}, Heuristic {heuristic_wins}, "
+            f"Timeouts {timeouts} "
+            f"(seed={result.seed}, seat={result.mcts_seat}, "
+            f"timeout={result.timed_out}, "
+            f"{result.elapsed_s:.1f}s)",
                 flush=True,
             )
 
-    return wins1, wins2
+    start = time.perf_counter()
+    if workers == 1:
+        for spec in specs:
+            record_progress(run_game(spec))
+    else:
+        try:
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                futures = [executor.submit(run_game, spec) for spec in specs]
+                for future in as_completed(futures):
+                    record_progress(future.result())
+        except PermissionError as error:
+            print(
+                f"Process pool unavailable ({error}); falling back to serial.",
+                flush=True,
+            )
+            results.clear()
+            for spec in specs:
+                record_progress(run_game(spec))
+
+    results.sort(key=lambda result: (result.seed, result.mcts_seat))
+    return BenchmarkSummary(tuple(results), time.perf_counter() - start)
+
+
+def _summary_text(
+    summary: BenchmarkSummary,
+    *,
+    mcts_iters: int,
+    seed: int,
+    rollout_depth: int | None,
+    max_candidate_moves: int | None,
+    max_interrupt_moves: int | None,
+    pruning_strategy: str,
+    max_game_seconds: float | None,
+    max_search_seconds: float | None,
+) -> str:
+    lines = [
+        "MCTS vs heuristic benchmark",
+        f"games: {summary.games}",
+        f"mcts_iters: {mcts_iters}",
+        f"rollout_depth: {rollout_depth}",
+        f"max_candidate_moves: {max_candidate_moves}",
+        f"max_interrupt_moves: {max_interrupt_moves}",
+        f"pruning_strategy: {pruning_strategy}",
+        f"max_game_seconds: {max_game_seconds}",
+        f"max_search_seconds: {max_search_seconds}",
+        f"seed_start: {seed}",
+        f"mcts_wins: {summary.mcts_wins}",
+        f"heuristic_wins: {summary.heuristic_wins}",
+        f"timeouts: {summary.timeouts}",
+        f"mcts_win_rate: {summary.win_rate:.3f}",
+        f"approx_95_ci_half_width: {summary.approx_95_ci_half_width:.3f}",
+        f"elapsed_s: {summary.elapsed_s:.1f}",
+        f"avg_game_s: {summary.avg_game_s:.2f}",
+        f"mcts_decisions_per_s: {summary.mcts_decisions_per_s:.2f}",
+        f"wins_by_mcts_seat: {summary.wins_by_mcts_seat}",
+        f"games_by_mcts_seat: {summary.games_by_mcts_seat}",
+        "",
+        "seed,mcts_seat,winner,mcts_won,timed_out,steps,mcts_decisions,elapsed_s",
+    ]
+    for result in summary.results:
+        lines.append(
+            f"{result.seed},{result.mcts_seat},{result.winner},"
+            f"{int(result.mcts_won)},{int(result.timed_out)},"
+            f"{result.steps},{result.mcts_decisions},{result.elapsed_s:.3f}"
+        )
+    return "\n".join(lines)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -88,7 +362,10 @@ def _parse_args() -> argparse.Namespace:
         "--games",
         type=int,
         default=DEFAULT_NUM_GAMES,
-        help=f"number of games to play (default: {DEFAULT_NUM_GAMES})",
+        help=(
+            f"total paired games to play; must be even "
+            f"(default: {DEFAULT_NUM_GAMES})"
+        ),
     )
     parser.add_argument(
         "-j",
@@ -104,6 +381,48 @@ def _parse_args() -> argparse.Namespace:
         help=f"MCTS iterations per move (default: {DEFAULT_ITERS})",
     )
     parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help=f"first paired game seed (default: {DEFAULT_SEED})",
+    )
+    parser.add_argument(
+        "--rollout-depth",
+        type=int,
+        default=None,
+        help="limit each MCTS rollout to this many heuristic moves before evaluation",
+    )
+    parser.add_argument(
+        "--max-candidate-moves",
+        type=int,
+        default=None,
+        help="cap large MCTS move lists to the top K one-step evaluator moves",
+    )
+    parser.add_argument(
+        "--max-interrupt-moves",
+        type=int,
+        default=None,
+        help="cap pending interrupt move lists to the top K interrupt-scored moves",
+    )
+    parser.add_argument(
+        "--pruning-strategy",
+        choices=("global", "bucketed"),
+        default="global",
+        help="strategy used when --max-candidate-moves prunes legal moves",
+    )
+    parser.add_argument(
+        "--max-game-seconds",
+        type=float,
+        default=None,
+        help="record a timeout if a single benchmark game exceeds this wall time",
+    )
+    parser.add_argument(
+        "--max-search-seconds",
+        type=float,
+        default=None,
+        help="stop a single MCTS search after this many seconds and use the best current child",
+    )
+    parser.add_argument(
         "-o",
         "--output-dir",
         type=Path,
@@ -115,25 +434,47 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = _parse_args()
+    specs = _build_specs(
+        num_games=args.games,
+        seed=args.seed,
+        mcts_iters=args.mcts_iters,
+        rollout_depth=args.rollout_depth,
+        max_candidate_moves=args.max_candidate_moves,
+        max_interrupt_moves=args.max_interrupt_moves,
+        pruning_strategy=args.pruning_strategy,
+        max_game_seconds=args.max_game_seconds,
+        max_search_seconds=args.max_search_seconds,
+    )
     effective_workers = args.workers or os.process_cpu_count() or 1
-    effective_workers = min(effective_workers, args.games)
+    effective_workers = min(effective_workers, len(specs))
 
     print(
-        f"Running {args.games} games across {effective_workers} worker"
+        f"Running {len(specs)} paired games across {effective_workers} worker"
         f"{'' if effective_workers == 1 else 's'}..."
     )
 
-    start = time.perf_counter()
-    wins1, wins2 = compare_agents(
+    summary = compare_agents(
         num_games=args.games,
         workers=args.workers,
         mcts_iters=args.mcts_iters,
+        seed=args.seed,
+        rollout_depth=args.rollout_depth,
+        max_candidate_moves=args.max_candidate_moves,
+        max_interrupt_moves=args.max_interrupt_moves,
+        pruning_strategy=args.pruning_strategy,
+        max_game_seconds=args.max_game_seconds,
+        max_search_seconds=args.max_search_seconds,
     )
-    elapsed = time.perf_counter() - start
-
-    result = (
-        f"MCTS wins: {wins1}, Heuristic wins: {wins2} "
-        f"({args.games} games in {elapsed:.1f}s)"
+    result_text = _summary_text(
+        summary,
+        mcts_iters=args.mcts_iters,
+        seed=args.seed,
+        rollout_depth=args.rollout_depth,
+        max_candidate_moves=args.max_candidate_moves,
+        max_interrupt_moves=args.max_interrupt_moves,
+        pruning_strategy=args.pruning_strategy,
+        max_game_seconds=args.max_game_seconds,
+        max_search_seconds=args.max_search_seconds,
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -141,9 +482,9 @@ def main() -> None:
         args.output_dir
         / f"mcts_vs_heuristic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     )
-    output_path.write_text(result + "\n")
+    output_path.write_text(result_text + "\n")
 
-    print(result)
+    print(result_text.split("\n\n", maxsplit=1)[0])
     print(f"Wrote {output_path}")
 
 

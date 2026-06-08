@@ -19,7 +19,7 @@ class ISMCTSNode:
         self.move = move
         self.parent = parent
         self.children: list[ISMCTSNode] = []
-        self.wins = 0
+        self.wins = 0.0
         self.visits = 0
 
         # For tracking how many times each move was an option inside a determinization.
@@ -46,7 +46,12 @@ class ISMCTSNode:
             if command_identity_key(move) not in expanded_keys
         ]
 
-    def choose_child_uct(self, legal_moves: list[GameCommand]) -> ISMCTSNode:
+    def choose_child_uct(
+        self,
+        legal_moves: list[GameCommand],
+        *,
+        maximize: bool = True,
+    ) -> ISMCTSNode:
         legal_children = self.get_legal_children(legal_moves)
         best_score = -math.inf
         best_child = None
@@ -64,8 +69,11 @@ class ISMCTSNode:
 
             move_availability = self.availability_counts[move_key]
 
+            win_rate = child.wins / child.visits
+            exploitation = win_rate if maximize else 1 - win_rate
+
             # Compute the UCT score for the child.
-            uct_score = child.wins / child.visits + C_UCT * math.sqrt(
+            uct_score = exploitation + C_UCT * math.sqrt(
                 math.log(move_availability) / child.visits
             )
 
@@ -78,7 +86,7 @@ class ISMCTSNode:
     def best_child(self) -> ISMCTSNode:
         return max(self.children, key=lambda child: child.visits)
 
-    def backpropagate(self, result: int) -> None:
+    def backpropagate(self, result: float) -> None:
         self.visits += 1
         self.wins += result
 

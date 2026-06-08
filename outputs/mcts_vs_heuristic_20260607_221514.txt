@@ -1,1 +1,0 @@
-MCTS wins: 27, Heuristic wins: 23 (50 games in 1251.2s)
