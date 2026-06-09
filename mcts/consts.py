@@ -1,7 +1,7 @@
 C_UCT = 0.7
 
 # Tuned through paired MCTS-vs-heuristic benchmarks; keep perf defaults in sync.
-DEFAULT_ITERS = 100
+DEFAULT_ITERS = 500
 DEFAULT_ROLLOUT_DEPTH = 6
 DEFAULT_MAX_CANDIDATE_MOVES = 20
 DEFAULT_MAX_INTERRUPT_MOVES = 1

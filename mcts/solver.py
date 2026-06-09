@@ -5,7 +5,6 @@ from mcts.consts import (
     DEFAULT_ITERS,
     DEFAULT_MAX_CANDIDATE_MOVES,
     DEFAULT_MAX_INTERRUPT_MOVES,
-    DEFAULT_MAX_SEARCH_SECONDS,
     DEFAULT_PRUNING_STRATEGY,
     DEFAULT_ROLLOUT_DEPTH,
 )
@@ -27,7 +26,7 @@ class ISMCTSSolver:
         max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES,
         max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
         pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
-        max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS,
+        max_search_seconds: float | None = None,
     ):
         if rollout_depth is not None and rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
@@ -95,10 +94,7 @@ class ISMCTSSolver:
                 determinized_game.apply(node.move)
 
             # 3. Expand the node.
-            if (
-                not determinized_game.is_over()
-                and len(unexpanded_moves) > 0
-            ):
+            if not determinized_game.is_over() and len(unexpanded_moves) > 0:
                 move = self._choose_expansion_move(
                     determinized_game,
                     unexpanded_moves,
