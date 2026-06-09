@@ -1,7 +1,14 @@
 import random
 import time
 
-from mcts.consts import DEFAULT_ITERS
+from mcts.consts import (
+    DEFAULT_ITERS,
+    DEFAULT_MAX_CANDIDATE_MOVES,
+    DEFAULT_MAX_INTERRUPT_MOVES,
+    DEFAULT_MAX_SEARCH_SECONDS,
+    DEFAULT_PRUNING_STRATEGY,
+    DEFAULT_ROLLOUT_DEPTH,
+)
 from mcts.evaluator import evaluate_reward
 from mcts.move_scoring import score_move, select_interrupt_moves, select_top_moves
 from mcts.node import ISMCTSNode
@@ -16,11 +23,11 @@ class ISMCTSSolver:
         self,
         iterations: int = DEFAULT_ITERS,
         rng: random.Random | None = None,
-        rollout_depth: int | None = None,
-        max_candidate_moves: int | None = None,
-        max_interrupt_moves: int | None = None,
-        pruning_strategy: str = "global",
-        max_search_seconds: float | None = None,
+        rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH,
+        max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES,
+        max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
+        pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
+        max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS,
     ):
         if rollout_depth is not None and rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")

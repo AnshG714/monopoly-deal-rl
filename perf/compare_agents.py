@@ -12,7 +12,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from mcts.consts import DEFAULT_ITERS
+from mcts.consts import (
+    DEFAULT_ITERS,
+    DEFAULT_MAX_CANDIDATE_MOVES,
+    DEFAULT_MAX_INTERRUPT_MOVES,
+    DEFAULT_MAX_SEARCH_SECONDS,
+    DEFAULT_PRUNING_STRATEGY,
+    DEFAULT_ROLLOUT_DEPTH,
+)
 from mcts.solver import ISMCTSSolver
 from models.game.commands import GameCommand
 from models.game.game import Game
@@ -241,12 +248,12 @@ def compare_agents(
     workers: int | None = None,
     mcts_iters: int = DEFAULT_ITERS,
     seed: int = DEFAULT_SEED,
-    rollout_depth: int | None = None,
-    max_candidate_moves: int | None = None,
-    max_interrupt_moves: int | None = None,
-    pruning_strategy: str = "global",
+    rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH,
+    max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES,
+    max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
+    pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
     max_game_seconds: float | None = None,
-    max_search_seconds: float | None = None,
+    max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS,
 ) -> BenchmarkSummary:
     """Run paired, seat-swapped games across worker processes."""
     specs = _build_specs(
@@ -389,25 +396,25 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rollout-depth",
         type=int,
-        default=None,
+        default=DEFAULT_ROLLOUT_DEPTH,
         help="limit each MCTS rollout to this many heuristic moves before evaluation",
     )
     parser.add_argument(
         "--max-candidate-moves",
         type=int,
-        default=None,
+        default=DEFAULT_MAX_CANDIDATE_MOVES,
         help="cap large MCTS move lists to the top K one-step evaluator moves",
     )
     parser.add_argument(
         "--max-interrupt-moves",
         type=int,
-        default=None,
+        default=DEFAULT_MAX_INTERRUPT_MOVES,
         help="cap pending interrupt move lists to the top K interrupt-scored moves",
     )
     parser.add_argument(
         "--pruning-strategy",
         choices=("global", "bucketed"),
-        default="global",
+        default=DEFAULT_PRUNING_STRATEGY,
         help="strategy used when --max-candidate-moves prunes legal moves",
     )
     parser.add_argument(
@@ -419,7 +426,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-search-seconds",
         type=float,
-        default=None,
+        default=DEFAULT_MAX_SEARCH_SECONDS,
         help="stop a single MCTS search after this many seconds and use the best current child",
     )
     parser.add_argument(
