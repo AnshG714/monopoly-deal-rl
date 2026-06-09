@@ -115,7 +115,7 @@ class PropertySet:
         return self.cards.pop(idx)
 
     def is_complete(self) -> bool:
-        return len(self.cards) == CARDS_IN_SET_FOR_COLOR[self.color]
+        return len(self.cards) >= CARDS_IN_SET_FOR_COLOR[self.color]
 
     def has_house(self) -> bool:
         return self.house is not None
