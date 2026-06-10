@@ -9,6 +9,8 @@ import {
   CARD_SIZES,
 } from "@/components/card/constants";
 import { colorLabel } from "@/components/card/utils";
+import { isWildPropertyCard } from "@/lib/legalMoves";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn, Flex } from "@/components/ui";
 
@@ -17,12 +19,27 @@ const PILE_OVERLAP_REM = -2.75;
 
 interface PropertyPileProps {
   pile: PropertySet;
+  setIdx?: number;
+  canMoveWild?: (setIdx: number, cardIdx: number) => boolean;
+  onMoveWild?: (setIdx: number, cardIdx: number) => void;
   className?: string;
 }
 
-export function PropertyPile({ pile, className }: PropertyPileProps) {
+export function PropertyPile({
+  pile,
+  setIdx,
+  canMoveWild,
+  onMoveWild,
+  className,
+}: PropertyPileProps) {
   const [open, setOpen] = useState(false);
   const accent = COLOR_MAP[pile.color] ?? pile.color;
+
+  function handleMoveWild(cardIdx: number) {
+    if (setIdx === undefined) return;
+    setOpen(false);
+    onMoveWild?.(setIdx, cardIdx);
+  }
 
   return (
     <>
@@ -78,14 +95,38 @@ export function PropertyPile({ pile, className }: PropertyPileProps) {
         >
           <DialogTitle>{colorLabel(pile.color)} properties</DialogTitle>
           <Flex wrap="wrap" gap="md" justify="center">
-            {pile.cards.map((card, index) => (
-              <Card
-                key={index}
-                card={card}
-                size="md"
-                className="overflow-visible"
-              />
-            ))}
+            {pile.cards.map((card, index) => {
+              const showMoveWild =
+                setIdx !== undefined &&
+                isWildPropertyCard(card) &&
+                canMoveWild?.(setIdx, index);
+
+              return (
+                <Flex
+                  key={index}
+                  direction="column"
+                  align="center"
+                  gap="sm"
+                  className="shrink-0"
+                >
+                  <Card
+                    card={card}
+                    size="md"
+                    className="overflow-visible"
+                  />
+                  {showMoveWild && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMoveWild(index)}
+                    >
+                      Move to another color
+                    </Button>
+                  )}
+                </Flex>
+              );
+            })}
           </Flex>
         </DialogContent>
       </Dialog>

@@ -14,6 +14,8 @@ interface PropertyBoardProps {
   interactive?: boolean;
   acceptsDrop?: boolean;
   onDrop?: () => void;
+  canMoveWild?: (setIdx: number, cardIdx: number) => boolean;
+  onMoveWild?: (setIdx: number, cardIdx: number) => void;
   className?: string;
 }
 
@@ -24,6 +26,8 @@ export function PropertyBoard({
   interactive = false,
   acceptsDrop = false,
   onDrop,
+  canMoveWild,
+  onMoveWild,
   className,
 }: PropertyBoardProps) {
   const [dragOver, setDragOver] = useState(false);
@@ -82,8 +86,14 @@ export function PropertyBoard({
           Drop properties here
         </span>
       ) : (
-        propertySets.map((pile) => (
-          <PropertyPile key={pile.color} pile={pile} />
+        propertySets.map((pile, setIdx) => (
+          <PropertyPile
+            key={pile.color}
+            pile={pile}
+            setIdx={interactive ? setIdx : undefined}
+            canMoveWild={interactive ? canMoveWild : undefined}
+            onMoveWild={interactive ? onMoveWild : undefined}
+          />
         ))
       )}
       {propertySets.length === 0 && !interactive && (

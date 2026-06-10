@@ -16,6 +16,7 @@ export const MOVE_KINDS = {
   PlayJustSayNo: "PlayJustSayNo",
   EndTurn: "EndTurn",
   DiscardCards: "DiscardCards",
+  MoveWildProperty: "MoveWildProperty",
 } as const;
 
 export type MoveKind = (typeof MOVE_KINDS)[keyof typeof MOVE_KINDS];
@@ -73,6 +74,10 @@ export function canViewerAct(game: GameStateResponse): boolean {
 
 export function isPropertyCard(card: Card): boolean {
   return card.type === "property" || Boolean(card.property_kind);
+}
+
+export function isWildPropertyCard(card: Card): boolean {
+  return card.property_kind === "wild" || card.property_kind === "multi";
 }
 
 export function findPlayPropertyMoves(
@@ -178,4 +183,23 @@ export function findEndTurnMove(
 
 export function canEndTurn(legalMoves: LegalMove[]): boolean {
   return findEndTurnMove(legalMoves) !== undefined;
+}
+
+export function findMoveWildMoves(
+  legalMoves: LegalMove[],
+  fromSetIdx: number,
+  cardIdx: number,
+): LegalMove[] {
+  return findMoves(legalMoves, MOVE_KINDS.MoveWildProperty, {
+    from_set_idx: fromSetIdx,
+    card_idx: cardIdx,
+  });
+}
+
+export function canMoveWild(
+  legalMoves: LegalMove[],
+  fromSetIdx: number,
+  cardIdx: number,
+): boolean {
+  return findMoveWildMoves(legalMoves, fromSetIdx, cardIdx).length > 0;
 }

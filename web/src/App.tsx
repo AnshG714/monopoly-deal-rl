@@ -39,7 +39,10 @@ export default function App() {
   } = useGame();
   const legal = useLegalMoves(game);
 
-  const wildPicker = overlay.kind === "wild-picker" ? overlay : null;
+  const wildPicker =
+    overlay.kind === "wild-picker" || overlay.kind === "move-wild-picker"
+      ? overlay
+      : null;
   const actionPicker = overlay.kind === "action-picker" ? overlay : null;
   const dealAction = overlay.kind === "deal-action" ? overlay : null;
   const discardPicker = overlay.kind === "discard-picker";
@@ -147,6 +150,16 @@ export default function App() {
     if (move) void playMove(move.id);
   }
 
+  function handleMoveWild(fromSetIdx: number, cardIdx: number) {
+    const moves = legal.moveWildMoves(fromSetIdx, cardIdx);
+    if (moves.length === 0) return;
+    if (moves.length === 1) {
+      void playMove(moves[0].id);
+      return;
+    }
+    openOverlay({ kind: "move-wild-picker", fromSetIdx, cardIdx, moves });
+  }
+
   function handleNextTurn() {
     const move = legal.endTurnMove();
     if (move) void playMove(move.id);
@@ -249,6 +262,8 @@ export default function App() {
                 interactive
                 acceptsDrop={acceptsPropertyDrop}
                 onDrop={handlePropertyDrop}
+                canMoveWild={legal.canMoveWild}
+                onMoveWild={handleMoveWild}
               />
             </Flex>
           )}
@@ -366,6 +381,11 @@ export default function App() {
             : []
         }
         existingColors={viewer?.property_sets.map((pile) => pile.color) ?? []}
+        description={
+          overlay.kind === "move-wild-picker"
+            ? "Move this wild property to another color pile."
+            : undefined
+        }
         onSelect={handleWildColorSelect}
       />
 

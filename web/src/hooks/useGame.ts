@@ -11,9 +11,16 @@ export interface MovePickerState {
   moves: LegalMove[];
 }
 
+export interface MoveWildPickerState {
+  fromSetIdx: number;
+  cardIdx: number;
+  moves: LegalMove[];
+}
+
 export type GameOverlay =
   | { kind: "none" }
   | ({ kind: "wild-picker" } & MovePickerState)
+  | ({ kind: "move-wild-picker" } & MoveWildPickerState)
   | ({ kind: "action-picker" } & MovePickerState)
   | ({ kind: "deal-action"; dealKind: DealActionKind } & MovePickerState)
   | { kind: "discard-picker" };

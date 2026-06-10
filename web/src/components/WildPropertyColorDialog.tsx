@@ -15,6 +15,7 @@ interface WildPropertyColorDialogProps {
   onOpenChange: (open: boolean) => void;
   colors: string[];
   existingColors: string[];
+  description?: string;
   onSelect: (color: string) => void;
 }
 
@@ -23,6 +24,7 @@ export function WildPropertyColorDialog({
   onOpenChange,
   colors,
   existingColors,
+  description = "Assign this wild property to a color pile.",
   onSelect,
 }: WildPropertyColorDialogProps) {
   const existing = new Set(existingColors);
@@ -32,9 +34,7 @@ export function WildPropertyColorDialog({
       <DialogContent showCloseButton={false} className="min-w-fit">
         <DialogHeader>
           <DialogTitle>Choose a color</DialogTitle>
-          <DialogDescription>
-            Assign this wild property to a color pile.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <Flex direction="column" gap="sm">

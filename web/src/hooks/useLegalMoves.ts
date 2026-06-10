@@ -9,6 +9,7 @@ import {
 } from "@/lib/discardCards";
 import {
   canEndTurn,
+  canMoveWild,
   canPlayAsMoney,
   canPlayProperty,
   canViewerAct,
@@ -20,6 +21,7 @@ import {
   findMove,
   findMoves,
   findPlayMoneyMove,
+  findMoveWildMoves,
   findPlayPropertyMove,
   findPlayPropertyMoves,
   validPropertyColors,
@@ -45,6 +47,10 @@ export function useLegalMoves(game: GameStateResponse | null) {
         findPlayPropertyMove(legalMoves, handIndex, intoColor),
       validPropertyColors: (handIndex: number) =>
         validPropertyColors(legalMoves, handIndex),
+      canMoveWild: (fromSetIdx: number, cardIdx: number) =>
+        canAct && canMoveWild(legalMoves, fromSetIdx, cardIdx),
+      moveWildMoves: (fromSetIdx: number, cardIdx: number) =>
+        findMoveWildMoves(legalMoves, fromSetIdx, cardIdx),
       canPlayAction: (handIndex: number) =>
         canAct && canPlayActionPileMove(legalMoves, handIndex),
       canAutoPlayAction: (handIndex: number) =>
