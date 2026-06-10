@@ -20,36 +20,28 @@ step is a better move-ranking prior, not deeper random rollouts.
 ## What We Can Act On
 
 1. **Candidate pruning is the strongest lever.**
-
-   Aggressive candidate pruning made random-rollout MCTS competitive against the
+  Aggressive candidate pruning made random-rollout MCTS competitive against the
    heuristic opponent. Without pruning, random-rollout MCTS lost.
-
-2. **`max_candidate_moves=5` is the best observed candidate cap.**
-
-   This is not yet a permanent default, but it is the strongest experimental
+2. `**max_candidate_moves=5` is the best observed candidate cap.**
+  This is not yet a permanent default, but it is the strongest experimental
    setting so far and should be the next setting to verify on larger seed blocks.
-
-3. **`max_interrupt_moves=1` is too aggressive.**
-
-   It hurt performance. Use `2`, `5`, or no interrupt pruning until losing-seed
+3. `**max_interrupt_moves=1` is too aggressive.**
+  It hurt performance. Use `2`, `5`, or no interrupt pruning until losing-seed
    analysis shows a better reason to narrow interrupts.
-
-4. **Depth `3` is not proven stronger than depth `6`.**
-
-   In the 200-game direct verification, depth `3` was only slightly ahead.
+4. **Rollout depth doesn't seem to affect performance greatly.**
+  In the 200-game direct verification, depth `3` was only slightly ahead.
    This is not statistically convincing. Depth `3` is reasonable if we want a
    small speed win, but not because it is clearly stronger.
-
 5. **Full terminal rollouts are not worth prioritizing.**
-
-   They were slower and unstable across seed blocks.
+  They were slower and unstable across seed blocks.
 
 ## Candidate Pruning
 
 Random-rollout MCTS vs heuristic opponent, `200` iterations, rollout depth `6`,
 interrupt pruning disabled unless noted.
 
-![Candidate cap sweep](assets/candidate_cap_sweep.svg)
+Candidate cap sweep
+
 
 | Candidate cap | Games | MCTS wins | Win rate | Use this result?                            |
 | ------------- | ----- | --------- | -------- | ------------------------------------------- |
@@ -74,15 +66,12 @@ Paired seed/seat deltas:
 Interpretation: the top-K move prior is doing more than speeding up search. It
 is directly improving move quality.
 
-Raw summary:
-
-`/private/tmp/monopoly-pruning-candidate-sweep/20260609_181901/candidate_cap_sweep_summary.csv`
-
 ## Interrupt Pruning
 
 Candidate cap fixed at `5`.
 
-![Interrupt cap sweep](assets/interrupt_cap_sweep.svg)
+Interrupt cap sweep
+
 
 | Interrupt cap | Games | MCTS wins | Win rate | Use this result? |
 | ------------- | ----- | --------- | -------- | ---------------- |
@@ -95,16 +84,13 @@ Candidate cap fixed at `5`.
 Interpretation: interrupt cap `1` throws away too much. The safer settings are
 `2`, `5`, or no interrupt pruning.
 
-Raw summary:
-
-`/private/tmp/monopoly-pruning-interrupt-sweep/20260609_182731/candidate5_interrupt_sweep_summary.csv`
-
 ## Rollout Depth
 
 The only depth result worth using for decisions is the direct depth `3` vs depth
 `6` verification on the same 200 seed/seat cases.
 
-![Depth 3 vs depth 6 verification](assets/depth3_vs_depth6_verification.svg)
+Depth 3 vs depth 6 verification
+
 
 | Rollout depth | Games | MCTS wins | Win rate | 95% half-width | Elapsed |
 | ------------- | ----- | --------- | -------- | -------------- | ------- |
@@ -131,49 +117,18 @@ paired difference = +0.025 for depth 3
 Interpretation: depth `3` is slightly faster and slightly ahead, but the
 strength edge is not verified.
 
-Raw files:
-
-- `/private/tmp/monopoly-depth-verify/depth_3/mcts_policy_20260609_164308.txt`
-- `/private/tmp/monopoly-depth-verify/depth_6/mcts_policy_20260609_165009.txt`
-
 ## Ruled Out Or De-Emphasized
 
 These runs are intentionally not part of the main argument:
 
 - **Low-iteration probes** such as 10, 20, and 50 iterations. They were useful
-  for smoke testing, but too noisy for design decisions.
+for smoke testing, but too noisy for design decisions.
 - **Random-opponent results.** They confirm the agent can beat weak play, but do
-  not tell us how to beat the heuristic baseline.
+not tell us how to beat the heuristic baseline.
 - **Small policy matrices.** They motivated the later ablations but were too
-  small to use as final evidence.
+small to use as final evidence.
 - **Full terminal rollouts.** They were slow and seed-sensitive.
 - **Claim that depth `3` is clearly stronger than depth `6`.** The 200-game
-  verification did not support that claim.
+verification did not support that claim.
 
-## Recommended Next Step
-
-Do not jump straight to an AlphaGo-style policy net. First make the move prior
-explicit and measurable.
-
-1. Introduce a `MovePrior` interface.
-
-   ```text
-   legal moves -> move prior -> candidate selector -> MCTS
-   ```
-
-2. Turn the current `move_scoring.py` logic into `HeuristicMovePrior`.
-
-3. Add candidate-pruning recall diagnostics:
-
-   - legal move count,
-   - heuristic baseline move rank,
-   - MCTS selected move rank,
-   - whether candidate cap `5` pruned plausible winning moves,
-   - win/loss outcome for the game.
-
-4. Use those diagnostics to build a training set for a learned move-ranking
-   prior.
-
-The learned model should first replace or augment `score_move`. That is the
-right bridge toward policy learning without overbuilding a full AlphaGo-style
-system prematurely.
+The next step would be to build a move ranking model which can be used as a prior to guide the MCTS search.
