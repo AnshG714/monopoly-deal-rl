@@ -1,5 +1,6 @@
 import random
 import time
+from typing import Callable
 
 from mcts.consts import (
     DEFAULT_ITERS,
@@ -16,6 +17,8 @@ from models.game.game import Game, GameCommand
 from rollout import choose_move
 from rollout import rollout
 
+MovePolicy = Callable[[Game], GameCommand]
+
 
 class ISMCTSSolver:
     def __init__(
@@ -27,6 +30,7 @@ class ISMCTSSolver:
         max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
         pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
         max_search_seconds: float | None = None,
+        rollout_policy: MovePolicy = choose_move,
     ):
         if rollout_depth is not None and rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
@@ -45,6 +49,7 @@ class ISMCTSSolver:
         self.max_interrupt_moves = max_interrupt_moves
         self.pruning_strategy = pruning_strategy
         self.max_search_seconds = max_search_seconds
+        self.rollout_policy = rollout_policy
 
     def search(self, game: Game) -> GameCommand:
         root_player_idx = game.acting_player_idx
@@ -147,13 +152,13 @@ class ISMCTSSolver:
 
     def _simulate(self, game: Game, root_player_idx: int) -> float:
         if self.rollout_depth is None:
-            simulation_result = rollout(game)
+            simulation_result = rollout(game, move_policy=self.rollout_policy)
             return 1.0 if simulation_result["winner"] == root_player_idx else 0.0
 
         for _ in range(self.rollout_depth):
             if game.is_over():
                 break
-            game.apply(choose_move(game))
+            game.apply(self.rollout_policy(game))
 
         return evaluate_reward(game, root_player_idx)
 
