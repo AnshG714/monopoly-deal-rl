@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <style>
+    .title { font: 700 22px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .subtitle { font: 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+    .axis { stroke: #cbd5e1; stroke-width: 1; }
+    .grid { stroke: #e2e8f0; stroke-width: 1; }
+    .tick { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+    .label { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+    .value { font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .note { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+    .legend { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+  </style>
+<text class="title" x="80" y="36">Depth 3 vs Depth 6 Verification</text>
+<text class="subtitle" x="80" y="58">200 games per depth, same seed-seat cases; paired net edge for depth 3 was only +5 games.</text>
+<line class="grid" x1="80" x2="940" y1="430.0" y2="430.0"/>
+<text class="tick" x="68" y="434.0" text-anchor="end">0%</text>
+<line class="grid" x1="80" x2="940" y1="344.0" y2="344.0"/>
+<text class="tick" x="68" y="348.0" text-anchor="end">25%</text>
+<line class="grid" x1="80" x2="940" y1="258.0" y2="258.0"/>
+<text class="tick" x="68" y="262.0" text-anchor="end">50%</text>
+<line class="grid" x1="80" x2="940" y1="172.0" y2="172.0"/>
+<text class="tick" x="68" y="176.0" text-anchor="end">75%</text>
+<line class="grid" x1="80" x2="940" y1="86.0" y2="86.0"/>
+<text class="tick" x="68" y="90.0" text-anchor="end">100%</text>
+<line class="axis" x1="80" x2="80" y1="86" y2="430"/>
+<line class="axis" x1="80" x2="940" y1="430" y2="430"/>
+<rect x="251.0" y="209.8" width="88.0" height="220.2" rx="4" fill="#0d9488"/>
+<line x1="295.0" x2="295.0" y1="187.1" y2="232.5" stroke="#334155" stroke-width="1.5"/>
+<line x1="289.0" x2="301.0" y1="187.1" y2="187.1" stroke="#334155" stroke-width="1.5"/>
+<line x1="289.0" x2="301.0" y1="232.5" y2="232.5" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="295.0" y="199.8" text-anchor="middle">64.0%</text>
+<text class="tick" x="295.0" y="458" text-anchor="middle">depth 3</text>
+<rect x="681.0" y="218.4" width="88.0" height="211.6" rx="4" fill="#0d9488"/>
+<line x1="725.0" x2="725.0" y1="195.4" y2="241.5" stroke="#334155" stroke-width="1.5"/>
+<line x1="719.0" x2="731.0" y1="195.4" y2="195.4" stroke="#334155" stroke-width="1.5"/>
+<line x1="719.0" x2="731.0" y1="241.5" y2="241.5" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="725.0" y="208.4" text-anchor="middle">61.5%</text>
+<text class="tick" x="725.0" y="458" text-anchor="middle">depth 6</text>
+<text class="label" x="510.0" y="492" text-anchor="middle">Rollout depth</text>
+</svg>

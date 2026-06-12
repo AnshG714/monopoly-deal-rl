@@ -36,6 +36,14 @@ class DeterminizeTests(unittest.TestCase):
         self.assertEqual(game.players[1].hand, before_other_hand)
         self.assertEqual(game.deck, before_deck)
 
+    def test_does_not_mutate_input_rng_state(self) -> None:
+        game = _controlled_game(seed=123)
+        before = game._rng.getstate()
+
+        determinize(game)
+
+        self.assertEqual(game._rng.getstate(), before)
+
     def test_preserves_unknown_pool_multiset(self) -> None:
         game = _controlled_game()
         before = _unknown_pool_values(game)

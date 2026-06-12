@@ -6,7 +6,7 @@ import unittest
 from models.cards.property import Color, MultiColorProperty, SingleColorProperty
 from models.game.commands import MoveWildProperty
 from models.game.game import Game
-from rollout import choose_move, rollout
+from rollout import choose_move, choose_random_move, rollout
 from rollout.jsn import debt_or_action_cancelled
 from rollout.policy import _move_wild_breaks_complete_set, _move_wild_completes_set
 
@@ -38,6 +38,17 @@ class RolloutSmokeTests(unittest.TestCase):
                 break
             moves = game.legal_moves()
             chosen = choose_move(game)
+            self.assertIn(chosen, moves)
+            game.apply(chosen)
+
+    def test_choose_random_move_always_legal(self) -> None:
+        game = Game(rng=random.Random(0))
+        game.start_match()
+        for _ in range(200):
+            if game.is_over():
+                break
+            moves = game.legal_moves()
+            chosen = choose_random_move(game)
             self.assertIn(chosen, moves)
             game.apply(chosen)
 
