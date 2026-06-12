@@ -7,6 +7,7 @@ from mcts.evaluator import evaluate_reward
 from mcts.solver import ISMCTSSolver
 from models.cards.property import CARDS_IN_SET_FOR_COLOR, Color, SingleColorProperty
 from models.game.game import Game
+from rollout import choose_random_move
 
 
 def _add_properties(game: Game, player_idx: int, color: Color, count: int) -> None:
@@ -57,6 +58,21 @@ class EvaluatorTests(unittest.TestCase):
             rollout_depth=4,
             max_candidate_moves=5,
             max_interrupt_moves=2,
+        ).search(game)
+
+        self.assertIn(move, game.legal_moves())
+
+    def test_solver_accepts_random_rollout_policy(self) -> None:
+        game = Game(rng=random.Random(2))
+        game.start_match()
+
+        move = ISMCTSSolver(
+            iterations=5,
+            rng=random.Random(2),
+            rollout_depth=4,
+            max_candidate_moves=None,
+            max_interrupt_moves=None,
+            rollout_policy=choose_random_move,
         ).search(game)
 
         self.assertIn(move, game.legal_moves())

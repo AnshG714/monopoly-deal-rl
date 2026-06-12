@@ -1,4 +1,4 @@
-"""Compare MCTS vs. the heuristic policy with paired, seeded games."""
+"""Compare MCTS vs. another policy with paired, seeded games."""
 
 from __future__ import annotations
 
@@ -11,22 +11,50 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
-from mcts.consts import DEFAULT_ITERS
+from mcts.consts import (
+    DEFAULT_ITERS,
+    DEFAULT_MAX_CANDIDATE_MOVES,
+    DEFAULT_MAX_INTERRUPT_MOVES,
+    DEFAULT_MAX_SEARCH_SECONDS,
+    DEFAULT_PRUNING_STRATEGY,
+    DEFAULT_ROLLOUT_DEPTH,
+)
 from mcts.solver import ISMCTSSolver
 from models.game.commands import GameCommand
 from models.game.game import Game
-from rollout import choose_move
+from rollout import choose_move, choose_random_move
 
 DEFAULT_NUM_GAMES = 100
 DEFAULT_SEED = 0
 MAX_STEPS = 10_000
+POLICY_HEURISTIC = "heuristic"
+POLICY_RANDOM = "random"
+SUPPORTED_POLICIES = (POLICY_HEURISTIC, POLICY_RANDOM)
+MovePolicy = Callable[[Game], GameCommand]
+
+
+def _policy_by_name(name: str) -> MovePolicy:
+    if name == POLICY_HEURISTIC:
+        return choose_move
+    if name == POLICY_RANDOM:
+        return choose_random_move
+    raise ValueError(f"Unknown policy: {name}")
+
+
+def _optional_int(value: str) -> int | None:
+    if value.lower() == "none":
+        return None
+    return int(value)
 
 
 @dataclass(frozen=True)
 class GameSpec:
     seed: int
     mcts_seat: int
+    mcts_rollout_policy: str
+    opponent_policy: str
     mcts_iters: int
     rollout_depth: int | None
     max_candidate_moves: int | None
@@ -65,12 +93,16 @@ class BenchmarkSummary:
         return sum(1 for result in self.results if result.mcts_won)
 
     @property
-    def heuristic_wins(self) -> int:
+    def opponent_wins(self) -> int:
         return sum(
             1
             for result in self.results
             if not result.timed_out and result.winner != result.mcts_seat
         )
+
+    @property
+    def heuristic_wins(self) -> int:
+        return self.opponent_wins
 
     @property
     def timeouts(self) -> int:
@@ -133,6 +165,8 @@ def run_game(spec: GameSpec) -> GameResult:
     game = Game(rng=random.Random(spec.seed))
     game.start_match()
 
+    mcts_rollout_policy = _policy_by_name(spec.mcts_rollout_policy)
+    opponent_policy = _policy_by_name(spec.opponent_policy)
     solver_seed = spec.seed * 2 + spec.mcts_seat
     mcts = ISMCTSSolver(
         iterations=spec.mcts_iters,
@@ -142,6 +176,7 @@ def run_game(spec: GameSpec) -> GameResult:
         max_interrupt_moves=spec.max_interrupt_moves,
         pruning_strategy=spec.pruning_strategy,
         max_search_seconds=spec.max_search_seconds,
+        rollout_policy=mcts_rollout_policy,
     )
 
     steps = 0
@@ -164,7 +199,7 @@ def run_game(spec: GameSpec) -> GameResult:
             move: GameCommand = mcts.search(game)
             mcts_decisions += 1
         else:
-            move = choose_move(game)
+            move = opponent_policy(game)
         game.apply(move)
         steps += 1
 
@@ -190,6 +225,8 @@ def _build_specs(
     *,
     num_games: int,
     seed: int,
+    mcts_rollout_policy: str,
+    opponent_policy: str,
     mcts_iters: int,
     rollout_depth: int | None,
     max_candidate_moves: int | None,
@@ -210,6 +247,8 @@ def _build_specs(
             GameSpec(
                 game_seed,
                 0,
+                mcts_rollout_policy,
+                opponent_policy,
                 mcts_iters,
                 rollout_depth,
                 max_candidate_moves,
@@ -223,6 +262,8 @@ def _build_specs(
             GameSpec(
                 game_seed,
                 1,
+                mcts_rollout_policy,
+                opponent_policy,
                 mcts_iters,
                 rollout_depth,
                 max_candidate_moves,
@@ -241,17 +282,21 @@ def compare_agents(
     workers: int | None = None,
     mcts_iters: int = DEFAULT_ITERS,
     seed: int = DEFAULT_SEED,
-    rollout_depth: int | None = None,
-    max_candidate_moves: int | None = None,
-    max_interrupt_moves: int | None = None,
-    pruning_strategy: str = "global",
+    mcts_rollout_policy: str = POLICY_HEURISTIC,
+    opponent_policy: str = POLICY_HEURISTIC,
+    rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH,
+    max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES,
+    max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
+    pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
     max_game_seconds: float | None = None,
-    max_search_seconds: float | None = None,
+    max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS,
 ) -> BenchmarkSummary:
     """Run paired, seat-swapped games across worker processes."""
     specs = _build_specs(
         num_games=num_games,
         seed=seed,
+        mcts_rollout_policy=mcts_rollout_policy,
+        opponent_policy=opponent_policy,
         mcts_iters=mcts_iters,
         rollout_depth=rollout_depth,
         max_candidate_moves=max_candidate_moves,
@@ -269,7 +314,7 @@ def compare_agents(
     def record_progress(result: GameResult) -> None:
         results.append(result)
         mcts_wins = sum(1 for item in results if item.mcts_won)
-        heuristic_wins = sum(
+        opponent_wins = sum(
             1
             for item in results
             if not item.timed_out and item.winner != item.mcts_seat
@@ -277,7 +322,7 @@ def compare_agents(
         timeouts = sum(1 for item in results if item.timed_out)
         print(
             f"{len(results)}/{len(specs)} - "
-            f"MCTS {mcts_wins}, Heuristic {heuristic_wins}, "
+            f"MCTS {mcts_wins}, Opponent {opponent_wins}, "
             f"Timeouts {timeouts} "
             f"(seed={result.seed}, seat={result.mcts_seat}, "
             f"timeout={result.timed_out}, "
@@ -313,6 +358,8 @@ def _summary_text(
     *,
     mcts_iters: int,
     seed: int,
+    mcts_rollout_policy: str,
+    opponent_policy: str,
     rollout_depth: int | None,
     max_candidate_moves: int | None,
     max_interrupt_moves: int | None,
@@ -321,9 +368,11 @@ def _summary_text(
     max_search_seconds: float | None,
 ) -> str:
     lines = [
-        "MCTS vs heuristic benchmark",
+        "MCTS policy benchmark",
         f"games: {summary.games}",
         f"mcts_iters: {mcts_iters}",
+        f"mcts_rollout_policy: {mcts_rollout_policy}",
+        f"opponent_policy: {opponent_policy}",
         f"rollout_depth: {rollout_depth}",
         f"max_candidate_moves: {max_candidate_moves}",
         f"max_interrupt_moves: {max_interrupt_moves}",
@@ -332,7 +381,7 @@ def _summary_text(
         f"max_search_seconds: {max_search_seconds}",
         f"seed_start: {seed}",
         f"mcts_wins: {summary.mcts_wins}",
-        f"heuristic_wins: {summary.heuristic_wins}",
+        f"opponent_wins: {summary.opponent_wins}",
         f"timeouts: {summary.timeouts}",
         f"mcts_win_rate: {summary.win_rate:.3f}",
         f"approx_95_ci_half_width: {summary.approx_95_ci_half_width:.3f}",
@@ -355,7 +404,7 @@ def _summary_text(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Benchmark MCTS vs. heuristic rollout policy"
+        description="Benchmark MCTS vs. another policy"
     )
     parser.add_argument(
         "-n",
@@ -387,27 +436,39 @@ def _parse_args() -> argparse.Namespace:
         help=f"first paired game seed (default: {DEFAULT_SEED})",
     )
     parser.add_argument(
+        "--mcts-rollout-policy",
+        choices=SUPPORTED_POLICIES,
+        default=POLICY_HEURISTIC,
+        help="policy used inside MCTS simulations",
+    )
+    parser.add_argument(
+        "--opponent-policy",
+        choices=SUPPORTED_POLICIES,
+        default=POLICY_HEURISTIC,
+        help="policy used by the non-MCTS opponent",
+    )
+    parser.add_argument(
         "--rollout-depth",
-        type=int,
-        default=None,
-        help="limit each MCTS rollout to this many heuristic moves before evaluation",
+        type=_optional_int,
+        default=DEFAULT_ROLLOUT_DEPTH,
+        help="limit each MCTS rollout to this many policy moves before evaluation; use 'none' for full rollouts",
     )
     parser.add_argument(
         "--max-candidate-moves",
-        type=int,
-        default=None,
-        help="cap large MCTS move lists to the top K one-step evaluator moves",
+        type=_optional_int,
+        default=DEFAULT_MAX_CANDIDATE_MOVES,
+        help="cap large MCTS move lists to the top K one-step evaluator moves; use 'none' to disable",
     )
     parser.add_argument(
         "--max-interrupt-moves",
-        type=int,
-        default=None,
-        help="cap pending interrupt move lists to the top K interrupt-scored moves",
+        type=_optional_int,
+        default=DEFAULT_MAX_INTERRUPT_MOVES,
+        help="cap pending interrupt move lists to the top K interrupt-scored moves; use 'none' to disable",
     )
     parser.add_argument(
         "--pruning-strategy",
         choices=("global", "bucketed"),
-        default="global",
+        default=DEFAULT_PRUNING_STRATEGY,
         help="strategy used when --max-candidate-moves prunes legal moves",
     )
     parser.add_argument(
@@ -419,7 +480,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-search-seconds",
         type=float,
-        default=None,
+        default=DEFAULT_MAX_SEARCH_SECONDS,
         help="stop a single MCTS search after this many seconds and use the best current child",
     )
     parser.add_argument(
@@ -437,6 +498,8 @@ def main() -> None:
     specs = _build_specs(
         num_games=args.games,
         seed=args.seed,
+        mcts_rollout_policy=args.mcts_rollout_policy,
+        opponent_policy=args.opponent_policy,
         mcts_iters=args.mcts_iters,
         rollout_depth=args.rollout_depth,
         max_candidate_moves=args.max_candidate_moves,
@@ -458,6 +521,8 @@ def main() -> None:
         workers=args.workers,
         mcts_iters=args.mcts_iters,
         seed=args.seed,
+        mcts_rollout_policy=args.mcts_rollout_policy,
+        opponent_policy=args.opponent_policy,
         rollout_depth=args.rollout_depth,
         max_candidate_moves=args.max_candidate_moves,
         max_interrupt_moves=args.max_interrupt_moves,
@@ -469,6 +534,8 @@ def main() -> None:
         summary,
         mcts_iters=args.mcts_iters,
         seed=args.seed,
+        mcts_rollout_policy=args.mcts_rollout_policy,
+        opponent_policy=args.opponent_policy,
         rollout_depth=args.rollout_depth,
         max_candidate_moves=args.max_candidate_moves,
         max_interrupt_moves=args.max_interrupt_moves,
@@ -480,7 +547,7 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     output_path = (
         args.output_dir
-        / f"mcts_vs_heuristic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        / f"mcts_policy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     )
     output_path.write_text(result_text + "\n")
 

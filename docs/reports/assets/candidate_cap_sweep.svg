@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <style>
+    .title { font: 700 22px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .subtitle { font: 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+    .axis { stroke: #cbd5e1; stroke-width: 1; }
+    .grid { stroke: #e2e8f0; stroke-width: 1; }
+    .tick { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+    .label { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+    .value { font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .note { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+    .legend { font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+  </style>
+<text class="title" x="80" y="36">Random Rollout vs Heuristic: Candidate-Pruning Sweep</text>
+<text class="subtitle" x="80" y="58">80 games per point, 200 iterations, rollout depth 6, interrupt pruning disabled.</text>
+<line class="grid" x1="80" x2="940" y1="430.0" y2="430.0"/>
+<text class="tick" x="68" y="434.0" text-anchor="end">0%</text>
+<line class="grid" x1="80" x2="940" y1="344.0" y2="344.0"/>
+<text class="tick" x="68" y="348.0" text-anchor="end">25%</text>
+<line class="grid" x1="80" x2="940" y1="258.0" y2="258.0"/>
+<text class="tick" x="68" y="262.0" text-anchor="end">50%</text>
+<line class="grid" x1="80" x2="940" y1="172.0" y2="172.0"/>
+<text class="tick" x="68" y="176.0" text-anchor="end">75%</text>
+<line class="grid" x1="80" x2="940" y1="86.0" y2="86.0"/>
+<text class="tick" x="68" y="90.0" text-anchor="end">100%</text>
+<line class="axis" x1="80" x2="80" y1="86" y2="430"/>
+<line class="axis" x1="80" x2="940" y1="430" y2="430"/>
+<rect x="122.0" y="275.2" width="88.0" height="154.8" rx="4" fill="#7c3aed"/>
+<line x1="166.0" x2="166.0" y1="238.4" y2="312.0" stroke="#334155" stroke-width="1.5"/>
+<line x1="160.0" x2="172.0" y1="238.4" y2="238.4" stroke="#334155" stroke-width="1.5"/>
+<line x1="160.0" x2="172.0" y1="312.0" y2="312.0" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="166.0" y="265.2" text-anchor="middle">45.0%</text>
+<text class="tick" x="166.0" y="458" text-anchor="middle">none</text>
+<rect x="294.0" y="176.1" width="88.0" height="253.9" rx="4" fill="#7c3aed"/>
+<line x1="338.0" x2="338.0" y1="143.4" y2="208.8" stroke="#334155" stroke-width="1.5"/>
+<line x1="332.0" x2="344.0" y1="143.4" y2="143.4" stroke="#334155" stroke-width="1.5"/>
+<line x1="332.0" x2="344.0" y1="208.8" y2="208.8" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="338.0" y="166.1" text-anchor="middle">73.8%</text>
+<text class="tick" x="338.0" y="458" text-anchor="middle">5</text>
+<rect x="466.0" y="232.2" width="88.0" height="197.8" rx="4" fill="#7c3aed"/>
+<line x1="510.0" x2="510.0" y1="195.7" y2="268.7" stroke="#334155" stroke-width="1.5"/>
+<line x1="504.0" x2="516.0" y1="195.7" y2="195.7" stroke="#334155" stroke-width="1.5"/>
+<line x1="504.0" x2="516.0" y1="268.7" y2="268.7" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="510.0" y="222.2" text-anchor="middle">57.5%</text>
+<text class="tick" x="510.0" y="458" text-anchor="middle">10</text>
+<rect x="638.0" y="206.4" width="88.0" height="223.6" rx="4" fill="#7c3aed"/>
+<line x1="682.0" x2="682.0" y1="171.3" y2="241.5" stroke="#334155" stroke-width="1.5"/>
+<line x1="676.0" x2="688.0" y1="171.3" y2="171.3" stroke="#334155" stroke-width="1.5"/>
+<line x1="676.0" x2="688.0" y1="241.5" y2="241.5" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="682.0" y="196.4" text-anchor="middle">65.0%</text>
+<text class="tick" x="682.0" y="458" text-anchor="middle">20</text>
+<rect x="810.0" y="245.3" width="88.0" height="184.7" rx="4" fill="#7c3aed"/>
+<line x1="854.0" x2="854.0" y1="208.5" y2="282.1" stroke="#334155" stroke-width="1.5"/>
+<line x1="848.0" x2="860.0" y1="208.5" y2="208.5" stroke="#334155" stroke-width="1.5"/>
+<line x1="848.0" x2="860.0" y1="282.1" y2="282.1" stroke="#334155" stroke-width="1.5"/>
+<text class="value" x="854.0" y="235.3" text-anchor="middle">53.7%</text>
+<text class="tick" x="854.0" y="458" text-anchor="middle">50</text>
+<text class="label" x="510.0" y="492" text-anchor="middle">max_candidate_moves</text>
+</svg>
