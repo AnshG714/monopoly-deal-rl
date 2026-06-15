@@ -13,7 +13,7 @@ def _keys_for_moves(moves: list[GameCommand]) -> set[object]:
 
 class ISMCTSNode:
     def __init__(
-        self, move: GameCommand | None = None, parent: "ISMCTSNode" | None = None
+        self, move: GameCommand | None = None, parent: ISMCTSNode | None = None
     ):
         # The move that led to this node. Roots don't have this set.
         self.move = move
@@ -51,7 +51,7 @@ class ISMCTSNode:
         legal_moves: list[GameCommand],
         *,
         maximize: bool = True,
-    ) -> ISMCTSNode:
+    ) -> ISMCTSNode | None:
         legal_children = self.get_legal_children(legal_moves)
         best_score = -math.inf
         best_child = None
@@ -85,6 +85,14 @@ class ISMCTSNode:
 
     def best_child(self) -> ISMCTSNode:
         return max(self.children, key=lambda child: child.visits)
+
+    def normalized_visits(self) -> dict[GameCommand, float]:
+        total_visits = sum(child.visits for child in self.children)
+        return {
+            child.move: child.visits / total_visits
+            for child in self.children
+            if child.move is not None
+        }
 
     def backpropagate(self, result: float) -> None:
         self.visits += 1

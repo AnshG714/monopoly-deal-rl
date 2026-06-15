@@ -1,10 +1,10 @@
-from typing import Union
-
 from .cards.action import ActionCard
 from .cards.base import Card
 from .cards.money import MoneyCard
 from .cards.property import Color, PropertyCard, PropertySet
-from .cards.rent import RentCard
+from .cards.rent import RentCard, WildRentCard
+
+BankableCard = MoneyCard | RentCard | WildRentCard | ActionCard
 
 
 SETS_TO_WIN = 3
@@ -14,7 +14,7 @@ class Player:
     def __init__(self, name: str):
         self.name = name
         self.hand: list[Card] = []
-        self.money_pile: list[Union[MoneyCard, RentCard, ActionCard]] = []
+        self.money_pile: list[BankableCard] = []
         self.property_sets: list[PropertySet] = []
 
     def deal_to_hand(self, card: Card):
@@ -105,7 +105,7 @@ class Player:
         self._drop_empty_pile_at(my_set_idx)
         other._drop_empty_pile_at(their_set_idx)
 
-    def play_money(self, card: Union[MoneyCard, RentCard, ActionCard]):
+    def play_money(self, card: BankableCard):
         self.hand.remove(card)
         self.money_pile.append(card)
 

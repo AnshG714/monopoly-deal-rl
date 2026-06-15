@@ -13,6 +13,7 @@ from serialization.state import view_for_player
 
 from ..store.memory import GameSession, GameStore, default_store
 
+
 class GameNotFoundError(LookupError):
     pass
 
@@ -94,7 +95,8 @@ class GameService:
         solver = ISMCTSSolver(iterations=session.mcts_iterations)
 
         while not game.is_over() and game.acting_player_idx == ai_idx:
-            move = solver.search(game)
+            result = solver.search(game)
+            move = result.move
             game.apply(move)
 
     def _build_response(self, session: GameSession, *, seed: int | None = None) -> dict:
@@ -102,10 +104,7 @@ class GameService:
         viewer = session.human_player_idx
         legal_moves: list[dict] = []
 
-        if (
-            not game.is_over()
-            and game.acting_player_idx == viewer
-        ):
+        if not game.is_over() and game.acting_player_idx == viewer:
             legal_moves = encode_moves(game, game.legal_moves())
 
         payload = {

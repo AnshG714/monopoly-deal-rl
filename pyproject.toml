@@ -21,3 +21,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["models*", "rollout*", "mcts*", "serialization*", "api*"]
 exclude = ["*.tests", "*.tests.*"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.410",
+]

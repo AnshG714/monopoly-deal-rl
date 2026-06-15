@@ -196,7 +196,8 @@ def run_game(spec: GameSpec) -> GameResult:
             )
 
         if game.acting_player_idx == spec.mcts_seat:
-            move: GameCommand = mcts.search(game)
+            result = mcts.search(game)
+            move = result.move
             mcts_decisions += 1
         else:
             move = opponent_policy(game)
@@ -327,8 +328,8 @@ def compare_agents(
             f"(seed={result.seed}, seat={result.mcts_seat}, "
             f"timeout={result.timed_out}, "
             f"{result.elapsed_s:.1f}s)",
-                flush=True,
-            )
+            flush=True,
+        )
 
     start = time.perf_counter()
     if workers == 1:
@@ -403,9 +404,7 @@ def _summary_text(
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Benchmark MCTS vs. another policy"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark MCTS vs. another policy")
     parser.add_argument(
         "-n",
         "--games",
@@ -546,8 +545,7 @@ def main() -> None:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     output_path = (
-        args.output_dir
-        / f"mcts_policy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        args.output_dir / f"mcts_policy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     )
     output_path.write_text(result_text + "\n")
 

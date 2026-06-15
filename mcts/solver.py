@@ -1,6 +1,7 @@
 import random
 import time
 from typing import Callable
+from dataclasses import dataclass
 
 from mcts.consts import (
     DEFAULT_ITERS,
@@ -18,6 +19,12 @@ from rollout import choose_move
 from rollout import rollout
 
 MovePolicy = Callable[[Game], GameCommand]
+
+
+@dataclass
+class ISMCTSSolverResult:
+    move: GameCommand
+    visits: dict[GameCommand, float]
 
 
 class ISMCTSSolver:
@@ -51,7 +58,7 @@ class ISMCTSSolver:
         self.max_search_seconds = max_search_seconds
         self.rollout_policy = rollout_policy
 
-    def search(self, game: Game) -> GameCommand:
+    def search(self, game: Game) -> ISMCTSSolverResult:
         root_player_idx = game.acting_player_idx
         root_node = ISMCTSNode()
         start = time.perf_counter()
@@ -118,8 +125,18 @@ class ISMCTSSolver:
             node.backpropagate(reward)
 
         if not root_node.children:
-            return choose_move(game)
-        return root_node.best_child().move
+            return ISMCTSSolverResult(
+                move=choose_move(game), visits=root_node.normalized_visits()
+            )
+
+        best_child_move = root_node.best_child().move
+        if best_child_move is None:
+            # Should not happen because we gate this above.
+            raise ValueError("Best child has no move")
+
+        return ISMCTSSolverResult(
+            move=best_child_move, visits=root_node.normalized_visits()
+        )
 
     def _candidate_moves(
         self,

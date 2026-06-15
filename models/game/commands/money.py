@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ...cards.property import PropertyCard
-from ...player import Player
+from ...player import BankableCard, Player
 from ..pending import jsn_responder_player_idx
 from .base import (
     GameCommand,
@@ -31,6 +31,8 @@ class PlayMoneyFromHand(GameCommand):
         self.validate(game)
         player = game.current_player()
         card = player.hand.pop(self.hand_index)
+        if not isinstance(card, BankableCard):
+            raise TypeError("Only money, rent, or action cards can be banked.")
         player.money_pile.append(card)
         game.plays_this_turn += 1
 

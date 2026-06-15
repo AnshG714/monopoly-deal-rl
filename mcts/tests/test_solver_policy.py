@@ -47,13 +47,13 @@ class MCTSPolicyRegressionTests(unittest.TestCase):
             opponent_bank=[1, 1],
         )
         rollout_move = choose_move(game)
-        mcts_move = ISMCTSSolver(
+        result = ISMCTSSolver(
             iterations=200,
             rng=random.Random(0),
         ).search(game)
 
         self.assertIsInstance(rollout_move, PlayItsMyBirthday)
-        self.assertIsInstance(mcts_move, PlayItsMyBirthday)
+        self.assertIsInstance(result.move, PlayItsMyBirthday)
 
     def test_rollout_and_mcts_charge_rent_when_collectible(self) -> None:
         game = _setup(
@@ -62,22 +62,22 @@ class MCTSPolicyRegressionTests(unittest.TestCase):
             opponent_bank=[3],
         )
         rollout_move = choose_move(game)
-        mcts_move = ISMCTSSolver(
+        result = ISMCTSSolver(
             iterations=200,
             rng=random.Random(0),
         ).search(game)
 
         self.assertIsInstance(rollout_move, PlayRent)
-        self.assertIsInstance(mcts_move, PlayRent)
+        self.assertIsInstance(result.move, PlayRent)
 
     def test_mcts_may_bank_birthday_when_debtor_has_no_assets(self) -> None:
         game = _setup([ItsMyBirthday()], properties=[(Color.RED, 1)])
-        move = ISMCTSSolver(
+        result = ISMCTSSolver(
             iterations=200,
             rng=random.Random(0),
         ).search(game)
 
-        self.assertIsInstance(move, PlayMoneyFromHand)
+        self.assertIsInstance(result.move, PlayMoneyFromHand)
 
     def test_mcts_search_does_not_mutate_root_rng_state(self) -> None:
         game = _setup(
