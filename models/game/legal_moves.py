@@ -112,7 +112,7 @@ def _legal_main_phase_moves(game: GameView) -> list[GameCommand]:
     if game.acting_player_idx != game.current_player_idx:
         return []
     if _must_discard_to_end_turn(game):
-        return _validated(DiscardCards.enumerate(game), game)
+        return _validated(list[GameCommand](DiscardCards.enumerate(game)), game)
     moves: list[GameCommand] = []
     _append_if_legal(moves, EndTurn(), game)
     moves.extend(_enumerate_main_phase_hand_plays(game))
