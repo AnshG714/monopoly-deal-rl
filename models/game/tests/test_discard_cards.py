@@ -4,6 +4,7 @@ import unittest
 
 from models.cards.money import MoneyCard
 from models.game.game import Game
+from models.game.commands.discard_cards import DiscardCards
 
 
 class DiscardCardsTests(unittest.TestCase):
@@ -13,7 +14,7 @@ class DiscardCardsTests(unittest.TestCase):
         game.plays_this_turn = 2
         deck_before = len(game.deck)
 
-        game.discard_cards([0])
+        game.apply(DiscardCards([0]))
 
         self.assertEqual(len(game.players[0].hand), 7)
         self.assertEqual(len(game.deck), deck_before + 1)
@@ -25,7 +26,7 @@ class DiscardCardsTests(unittest.TestCase):
         game.players[0].hand = [MoneyCard(i) for i in range(10)]
         deck_before = len(game.deck)
 
-        game.discard_cards([1, 4, 9])
+        game.apply(DiscardCards([1, 4, 9]))
 
         self.assertEqual(len(game.players[0].hand), 7)
         self.assertEqual(len(game.deck), deck_before + 3)
@@ -36,19 +37,19 @@ class DiscardCardsTests(unittest.TestCase):
         game.players[0].hand = [MoneyCard(1)] * 8
 
         with self.assertRaises(ValueError):
-            game.discard_cards([0, 1])
+            game.apply(DiscardCards([0, 1]))
 
     def test_rejects_when_hand_already_legal(self) -> None:
         game = Game()
         game.players[0].hand = [MoneyCard(1)] * 7
 
         with self.assertRaises(RuntimeError):
-            game.discard_cards([0])
+            game.apply(DiscardCards([0]))
 
     def test_end_turn_after_discard(self) -> None:
         game = Game()
         game.players[0].hand = [MoneyCard(1)] * 8
-        game.discard_cards([3])
+        game.apply(DiscardCards([3]))
         game.end_turn()
         self.assertEqual(game.current_player_idx, 1)
 

@@ -17,9 +17,7 @@ _RENT_ORANGE = [1, 3, 5]
 
 
 def _pink_orange_wild() -> MultiColorProperty:
-    return MultiColorProperty(
-        Color.PINK, _RENT_PINK, Color.ORANGE, _RENT_ORANGE, 2
-    )
+    return MultiColorProperty(Color.PINK, _RENT_PINK, Color.ORANGE, _RENT_ORANGE, 2)
 
 
 def _orange(name: str) -> SingleColorProperty:
@@ -38,7 +36,9 @@ class MoveWildPropertyTests(unittest.TestCase):
         player.add_property_to_board(_orange("B"), Color.ORANGE)
         player.add_property_to_board(_pink_orange_wild(), Color.PINK)
 
-        game.move_wild_property(from_set_idx=1, card_idx=0, into_color=Color.ORANGE)
+        game.apply(
+            MoveWildProperty(from_set_idx=1, card_idx=0, into_color=Color.ORANGE)
+        )
 
         orange_pile = next(p for p in player.property_sets if p.color == Color.ORANGE)
         self.assertTrue(orange_pile.is_complete())
@@ -54,7 +54,9 @@ class MoveWildPropertyTests(unittest.TestCase):
         pink_pile = player.pile_at(0)
         pink_pile.attach_house(House())
 
-        game.move_wild_property(from_set_idx=0, card_idx=2, into_color=Color.ORANGE)
+        game.apply(
+            MoveWildProperty(from_set_idx=0, card_idx=2, into_color=Color.ORANGE)
+        )
 
         pink_pile = player.pile_at(0)
         self.assertFalse(pink_pile.is_complete())
@@ -71,7 +73,9 @@ class MoveWildPropertyTests(unittest.TestCase):
         player.add_property_to_board(_pink_orange_wild(), Color.PINK)
 
         with self.assertRaises(ValueError):
-            game.move_wild_property(from_set_idx=1, card_idx=0, into_color=Color.ORANGE)
+            game.apply(
+                MoveWildProperty(from_set_idx=1, card_idx=0, into_color=Color.ORANGE)
+            )
 
     def test_rejects_non_wild_card(self) -> None:
         game = Game()
@@ -80,7 +84,9 @@ class MoveWildPropertyTests(unittest.TestCase):
         player.add_property_to_board(_orange("B"), Color.ORANGE)
 
         with self.assertRaises(TypeError):
-            game.move_wild_property(from_set_idx=0, card_idx=0, into_color=Color.ORANGE)
+            game.apply(
+                MoveWildProperty(from_set_idx=0, card_idx=0, into_color=Color.ORANGE)
+            )
 
     def test_ten_color_wild_can_move_to_any_incomplete_set(self) -> None:
         game = Game()
@@ -90,7 +96,7 @@ class MoveWildPropertyTests(unittest.TestCase):
             SingleColorProperty(Color.GREEN, "Pacific", [2, 4, 7], 4), Color.GREEN
         )
 
-        game.move_wild_property(from_set_idx=0, card_idx=0, into_color=Color.GREEN)
+        game.apply(MoveWildProperty(from_set_idx=0, card_idx=0, into_color=Color.GREEN))
 
         green_pile = player.pile_at(0)
         self.assertEqual(green_pile.color, Color.GREEN)

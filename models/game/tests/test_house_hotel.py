@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import unittest
 
-from models.cards.action import DealBreaker, Hotel, House
+from models.cards.action import ActionCardType, DealBreaker, Hotel, House
 from models.cards.property import Color, SingleColorProperty
 from models.game.game import Game
 from models.game.pending import PaymentDue
 from models.game.commands.rent import rent_m_due_for_color
+from models.game.commands.house_hotel import PlayHouse, PlayHotel
+from models.game.commands.money import PayDebt
+from models.game.commands.just_say_no import PassJustSayNo
+from models.game.commands.deal_breaker import PlayDealBreaker
 
 
 def _add_complete_red_set(game: Game, player_idx: int) -> None:
@@ -28,7 +32,7 @@ class HouseHotelTests(unittest.TestCase):
         _add_complete_red_set(game, 0)
         game.players[0].hand = [House()]
 
-        game.play_house(hand_index=0, target_set_idx=0)
+        game.apply(PlayHouse(hand_index=0, target_set_idx=0))
 
         pile = game.players[0].pile_at(0)
         self.assertTrue(pile.has_house())
@@ -41,16 +45,16 @@ class HouseHotelTests(unittest.TestCase):
         game.players[0].hand = [Hotel()]
 
         with self.assertRaises(ValueError):
-            game.play_hotel(hand_index=0, target_set_idx=0)
+            game.apply(PlayHotel(hand_index=0, target_set_idx=0))
 
     def test_duplicate_house_is_rejected(self) -> None:
         game = Game()
         _add_complete_red_set(game, 0)
         game.players[0].hand = [House(), House()]
 
-        game.play_house(hand_index=0, target_set_idx=0)
+        game.apply(PlayHouse(hand_index=0, target_set_idx=0))
         with self.assertRaises(ValueError):
-            game.play_house(hand_index=0, target_set_idx=0)
+            game.apply(PlayHouse(hand_index=0, target_set_idx=0))
 
     def test_rent_includes_house_hotel_bonus(self) -> None:
         game = Game()
@@ -74,7 +78,7 @@ class HouseHotelTests(unittest.TestCase):
         game.pending = PaymentDue(creditor_idx=1, debtor_idx=0, amount_m=1)
         game.acting_player_idx = 0
 
-        game.pay_debt(money_pile_indices=[], property_card_indices=[(0, 0)])
+        game.apply(PayDebt(money_pile_indices=[], property_card_indices=[(0, 0)]))
 
         debtor_pile = game.players[0].pile_at(0)
         self.assertFalse(debtor_pile.has_house())
@@ -95,8 +99,8 @@ class HouseHotelTests(unittest.TestCase):
         victim_pile.attach_hotel(Hotel())
         game.players[0].hand = [DealBreaker()]
 
-        game.play_deal_breaker(hand_index=0, victim_idx=1, victim_set_idx=0)
-        game.pass_just_say_no()
+        game.apply(PlayDealBreaker(hand_index=0, victim_idx=1, victim_set_idx=0))
+        game.apply(PassJustSayNo())
 
         actor_pile = game.players[0].pile_at(0)
         self.assertTrue(actor_pile.has_house())
