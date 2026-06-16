@@ -13,6 +13,7 @@ dependencies = [
 [project.scripts]
 rollout = "rollout.rollout:main"
 serve = "api.main:main"
+typecheck = "pyright.cli:entrypoint"
 
 [build-system]
 requires = ["setuptools>=75"]
