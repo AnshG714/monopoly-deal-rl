@@ -10,7 +10,8 @@ from models.cards.rent import RentCard
 from models.game.commands import PlayItsMyBirthday, PlayMoneyFromHand, PlayRent
 from models.game.game import Game
 from mcts.solver import ISMCTSSolver
-from rollout import choose_move, is_dominated_money_play
+from rollout import MovePolicyType, get_action_with_policy
+from rollout.heuristic_policy import is_dominated_money_play
 
 
 def _setup(
@@ -46,7 +47,7 @@ class MCTSPolicyRegressionTests(unittest.TestCase):
             properties=[(Color.RED, 1)],
             opponent_bank=[1, 1],
         )
-        rollout_move = choose_move(game)
+        rollout_move = get_action_with_policy(game, MovePolicyType.HEURISTIC)
         result = ISMCTSSolver(
             iterations=200,
             rng=random.Random(0),
@@ -61,7 +62,7 @@ class MCTSPolicyRegressionTests(unittest.TestCase):
             properties=[(Color.RED, 2)],
             opponent_bank=[3],
         )
-        rollout_move = choose_move(game)
+        rollout_move = get_action_with_policy(game, MovePolicyType.HEURISTIC)
         result = ISMCTSSolver(
             iterations=200,
             rng=random.Random(0),
@@ -103,7 +104,10 @@ class MCTSPolicyRegressionTests(unittest.TestCase):
         game = _setup([ForcedDeal()], properties=[(Color.RED, 1)])
         bank = PlayMoneyFromHand(0)
         self.assertFalse(is_dominated_money_play(game, bank))
-        self.assertIsInstance(choose_move(game), PlayMoneyFromHand)
+        self.assertIsInstance(
+            get_action_with_policy(game, MovePolicyType.HEURISTIC),
+            PlayMoneyFromHand,
+        )
 
 
 if __name__ == "__main__":

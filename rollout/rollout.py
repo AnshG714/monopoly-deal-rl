@@ -1,4 +1,4 @@
-"""Heuristic rollout: play a game to completion using the policy in policy.py.
+"""Heuristic rollout: play a game to completion using a configured move policy.
 
 Includes a CLI entry point (``python -m rollout.rollout``) for running a
 single game with optional verbose move-by-move output.
@@ -10,10 +10,11 @@ import argparse
 import random
 import secrets
 from typing import Callable
+from enum import Enum
 
 from models.game.game import Game, GameCommand
 
-from rollout.policy import choose_move
+from rollout.heuristic_policy import choose_move
 from rollout.random_policy import choose_random_move
 
 DEFAULT_MAX_STEPS = 10_000
@@ -23,11 +24,29 @@ MovePolicy = Callable[[Game], GameCommand]
 StepCallback = Callable[[int, Game, GameCommand], None]
 
 
+class MovePolicyType(Enum):
+    HEURISTIC = "heuristic"
+    RANDOM = "random"
+
+
+def _resolve_move_policy(move_policy: MovePolicyType) -> MovePolicy:
+    if move_policy == MovePolicyType.HEURISTIC:
+        return choose_move
+    if move_policy == MovePolicyType.RANDOM:
+        return choose_random_move
+
+    raise ValueError(f"Unknown move policy: {move_policy}")
+
+
+def get_action_with_policy(game: Game, policy: MovePolicyType) -> GameCommand:
+    return _resolve_move_policy(policy)(game)
+
+
 def rollout(
     game: Game,
     *,
     max_steps: int = DEFAULT_MAX_STEPS,
-    move_policy: MovePolicy = choose_move,
+    move_policy: MovePolicyType = MovePolicyType.HEURISTIC,
     on_step: StepCallback | None = None,
 ) -> dict:
     """Play ``game`` to completion. Returns steps taken and the winner."""
@@ -37,28 +56,13 @@ def rollout(
         if winner is not None:
             return {"steps": steps, "winner": winner}
 
-        move = move_policy(game)
+        move = _resolve_move_policy(move_policy)(game)
         if on_step is not None:
             on_step(steps, game, move)
         game.apply(move)
         steps += 1
 
     raise RuntimeError(f"Hit step limit ({max_steps}) without a winner")
-
-
-def random_rollout(
-    game: Game,
-    *,
-    max_steps: int = DEFAULT_MAX_STEPS,
-    on_step: StepCallback | None = None,
-) -> dict:
-    """Play ``game`` to completion using uniformly random legal moves."""
-    return rollout(
-        game,
-        max_steps=max_steps,
-        move_policy=choose_random_move,
-        on_step=on_step,
-    )
 
 
 def _move_label(game: Game, move: object) -> str:

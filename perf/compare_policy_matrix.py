@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from mcts.consts import (  # noqa: E402
+from mcts.consts import (
     DEFAULT_ITERS,
     DEFAULT_MAX_CANDIDATE_MOVES,
     DEFAULT_MAX_INTERRUPT_MOVES,
@@ -20,20 +20,19 @@ from mcts.consts import (  # noqa: E402
     DEFAULT_PRUNING_STRATEGY,
     DEFAULT_ROLLOUT_DEPTH,
 )
-from perf.compare_agents import (  # noqa: E402
-    POLICY_HEURISTIC,
-    POLICY_RANDOM,
+from perf.compare_agents import (
     SUPPORTED_POLICIES,
     BenchmarkSummary,
     compare_agents,
 )
+from rollout import MovePolicyType
 
 DEFAULT_MATRIX_GAMES = 20
-MATRIX: tuple[tuple[str, str], ...] = (
-    (POLICY_RANDOM, POLICY_RANDOM),
-    (POLICY_RANDOM, POLICY_HEURISTIC),
-    (POLICY_HEURISTIC, POLICY_RANDOM),
-    (POLICY_HEURISTIC, POLICY_HEURISTIC),
+MATRIX: tuple[tuple[MovePolicyType, MovePolicyType], ...] = (
+    (MovePolicyType.RANDOM, MovePolicyType.RANDOM),
+    (MovePolicyType.RANDOM, MovePolicyType.HEURISTIC),
+    (MovePolicyType.HEURISTIC, MovePolicyType.RANDOM),
+    (MovePolicyType.HEURISTIC, MovePolicyType.HEURISTIC),
 )
 
 
@@ -45,8 +44,8 @@ def _optional_int(value: str) -> int | None:
 
 def _summary_row(
     *,
-    mcts_rollout_policy: str,
-    opponent_policy: str,
+    mcts_rollout_policy: MovePolicyType,
+    opponent_policy: MovePolicyType,
     summary: BenchmarkSummary,
     mcts_iters: int,
     rollout_depth: int | None,
@@ -56,8 +55,8 @@ def _summary_row(
     max_search_seconds: float | None,
 ) -> dict[str, object]:
     return {
-        "mcts_rollout_policy": mcts_rollout_policy,
-        "opponent_policy": opponent_policy,
+        "mcts_rollout_policy": mcts_rollout_policy.value,
+        "opponent_policy": opponent_policy.value,
         "mcts_iters": mcts_iters,
         "rollout_depth": rollout_depth,
         "max_candidate_moves": max_candidate_moves,
@@ -165,10 +164,12 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _selected_matrix(policies: list[str] | None) -> tuple[tuple[str, str], ...]:
+def _selected_matrix(
+    policies: list[str] | None,
+) -> tuple[tuple[MovePolicyType, MovePolicyType], ...]:
     if not policies:
         return MATRIX
-    selected = set(policies)
+    selected = {MovePolicyType(policy) for policy in policies}
     return tuple(
         (mcts_policy, opponent_policy)
         for mcts_policy, opponent_policy in MATRIX
@@ -186,8 +187,8 @@ def main() -> None:
     for mcts_rollout_policy, opponent_policy in matrix:
         print(
             "\n"
-            f"=== MCTS rollout={mcts_rollout_policy} "
-            f"vs opponent={opponent_policy} ===",
+            f"=== MCTS rollout={mcts_rollout_policy.value} "
+            f"vs opponent={opponent_policy.value} ===",
             flush=True,
         )
         summary = compare_agents(

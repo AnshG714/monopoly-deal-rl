@@ -6,9 +6,12 @@ import unittest
 from models.cards.property import Color, MultiColorProperty, SingleColorProperty
 from models.game.commands import MoveWildProperty
 from models.game.game import Game
-from rollout import choose_move, choose_random_move, rollout
+from rollout import MovePolicyType, get_action_with_policy, rollout
 from rollout.jsn import debt_or_action_cancelled
-from rollout.policy import _move_wild_breaks_complete_set, _move_wild_completes_set
+from rollout.heuristic_policy import (
+    _move_wild_breaks_complete_set,
+    _move_wild_completes_set,
+)
 
 _RENT_PINK = [1, 2, 4]
 _RENT_ORANGE = [1, 3, 5]
@@ -30,25 +33,25 @@ class RolloutSmokeTests(unittest.TestCase):
         self.assertGreater(result["steps"], 0)
         self.assertLess(result["steps"], 5000)
 
-    def test_choose_move_always_legal(self) -> None:
+    def test_heuristic_policy_always_legal(self) -> None:
         game = Game()
         game.start_match()
         for _ in range(200):
             if game.is_over():
                 break
             moves = game.legal_moves()
-            chosen = choose_move(game)
+            chosen = get_action_with_policy(game, MovePolicyType.HEURISTIC)
             self.assertIn(chosen, moves)
             game.apply(chosen)
 
-    def test_choose_random_move_always_legal(self) -> None:
+    def test_random_policy_always_legal(self) -> None:
         game = Game(rng=random.Random(0))
         game.start_match()
         for _ in range(200):
             if game.is_over():
                 break
             moves = game.legal_moves()
-            chosen = choose_random_move(game)
+            chosen = get_action_with_policy(game, MovePolicyType.RANDOM)
             self.assertIn(chosen, moves)
             game.apply(chosen)
 

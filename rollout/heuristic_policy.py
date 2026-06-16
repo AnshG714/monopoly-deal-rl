@@ -69,7 +69,7 @@ def choose_move(game: Game) -> GameCommand:
 
     # Engine exposes one branch at a time — match that before main-phase priorities.
     if all(isinstance(m, DiscardCards) for m in moves):
-        return _choose_discard(game, moves)
+        return _choose_discard(game, [m for m in moves if isinstance(m, DiscardCards)])
 
     if isinstance(pending, (SlyDealPending, ForcedDealPending, DealBreakerPending)):
         return _choose_defend_steal(game, moves, pending)
@@ -268,7 +268,7 @@ def _pick_priority_5(game: Game, moves: list[GameCommand]) -> GameCommand | None
     return None
 
 
-def _choose_discard(game: Game, moves: list[GameCommand]) -> DiscardCards:
+def _choose_discard(game: Game, moves: list[DiscardCards]) -> DiscardCards:
     # Score by what we keep; discarded cards re-enter the shuffled deck.
     hand = game.current_player().hand
     return max(

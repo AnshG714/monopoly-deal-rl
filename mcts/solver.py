@@ -15,10 +15,7 @@ from mcts.move_scoring import score_move, select_interrupt_moves, select_top_mov
 from mcts.node import ISMCTSNode
 from mcts.determinize import determinize
 from models.game.game import Game, GameCommand
-from rollout import choose_move
-from rollout import rollout
-
-MovePolicy = Callable[[Game], GameCommand]
+from rollout import MovePolicyType, rollout, get_action_with_policy
 
 
 @dataclass
@@ -37,7 +34,7 @@ class ISMCTSSolver:
         max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
         pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
         max_search_seconds: float | None = None,
-        rollout_policy: MovePolicy = choose_move,
+        rollout_policy: MovePolicyType = MovePolicyType.HEURISTIC,
     ):
         if rollout_depth is not None and rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
@@ -126,7 +123,8 @@ class ISMCTSSolver:
 
         if not root_node.children:
             return ISMCTSSolverResult(
-                move=choose_move(game), visits=root_node.normalized_visits()
+                move=get_action_with_policy(game, self.rollout_policy),
+                visits=root_node.normalized_visits(),
             )
 
         best_child_move = root_node.best_child().move
@@ -163,7 +161,7 @@ class ISMCTSSolver:
             moves,
             root_player_idx=root_player_idx,
             max_moves=self.max_candidate_moves,
-            heuristic_move=choose_move(game),
+            heuristic_move=get_action_with_policy(game, MovePolicyType.HEURISTIC),
             strategy=self.pruning_strategy,
         )
 
@@ -175,7 +173,7 @@ class ISMCTSSolver:
         for _ in range(self.rollout_depth):
             if game.is_over():
                 break
-            game.apply(self.rollout_policy(game))
+            game.apply(get_action_with_policy(game, self.rollout_policy))
 
         return evaluate_reward(game, root_player_idx)
 
