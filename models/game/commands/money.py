@@ -37,10 +37,27 @@ class PlayMoneyFromHand(GameCommand):
         game.plays_this_turn += 1
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class PayDebt(GameCommand):
     money_pile_indices: list[int]
     property_card_indices: list[tuple[int, int]] = field(default_factory=list)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PayDebt):
+            return False
+        return (
+            self._selected_money_indices() == other._selected_money_indices()
+            and self._selected_property_indices() == other._selected_property_indices()
+        )
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                PayDebt,
+                tuple(self._selected_money_indices()),
+                tuple(self._selected_property_indices()),
+            )
+        )
 
     def _selected_money_indices(self) -> list[int]:
         return sorted(set(self.money_pile_indices))

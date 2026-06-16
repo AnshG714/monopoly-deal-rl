@@ -8,11 +8,19 @@ from .base import GameCommand, GameView, require_main_phase
 from .end_turn import MAX_HAND_SIZE_AT_END_OF_TURN
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class DiscardCards(GameCommand):
     """Discard exactly the excess cards over the end-of-turn hand limit (7)."""
 
     hand_indices: list[int]
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DiscardCards):
+            return False
+        return sorted(self.hand_indices) == sorted(other.hand_indices)
+
+    def __hash__(self) -> int:
+        return hash((DiscardCards, tuple(sorted(self.hand_indices))))
 
     def validate(self, game: GameView) -> None:
         require_main_phase(game, "discard_cards")

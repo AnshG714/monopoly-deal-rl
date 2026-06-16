@@ -14,7 +14,7 @@ card being played, then command-specific target legality:
 from __future__ import annotations
 
 import random
-from typing import Protocol
+from typing import Hashable, Protocol
 
 from ...cards.action import ActionCard, ActionCardType
 from ...cards.base import Card, CardType
@@ -50,7 +50,7 @@ class GameView(Protocol):
     def shuffle_deck(self) -> None: ...
 
 
-class GameCommand(Protocol):
+class GameCommand(Hashable, Protocol):
     """A legal game move candidate."""
 
     def validate(self, game: GameView) -> None:

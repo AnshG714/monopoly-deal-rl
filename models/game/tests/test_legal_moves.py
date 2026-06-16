@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 
+from typing import cast
 from models.cards.action import (
     ActionCard,
     ActionCardType,
@@ -58,7 +59,9 @@ class LegalMovesTests(unittest.TestCase):
         game = Game()
         game.players[0].hand = [PassGo()]
         moves = game.legal_moves()
-        self.assertEqual([PlayPassGo(0)], [m for m in moves if isinstance(m, PlayPassGo)])
+        self.assertEqual(
+            [PlayPassGo(0)], [m for m in moves if isinstance(m, PlayPassGo)]
+        )
 
     def test_over_hand_limit_with_plays_remaining_still_allows_hand_plays(self) -> None:
         game = Game()
@@ -78,7 +81,7 @@ class LegalMovesTests(unittest.TestCase):
         self.assertTrue(all(isinstance(m, DiscardCards) for m in moves))
         self.assertEqual(len(moves), 8)
         for move in moves:
-            self.assertEqual(len(move.hand_indices), 1)
+            self.assertEqual(len(cast(DiscardCards, move).hand_indices), 1)
 
     def test_discard_enumerate_matches_legal_moves(self) -> None:
         game = Game()
@@ -153,15 +156,18 @@ class LegalMovesTests(unittest.TestCase):
             Color.BLUE,
         )
 
-        game.play_forced_deal(0, 1, 0, 0, 0, 0, Color.BLUE, Color.RED)
-        game.pass_just_say_no()
+        game.apply(PlayForcedDeal(0, 1, 0, 0, 0, 0, Color.BLUE, Color.RED))
+        game.apply(PassJustSayNo())
 
         actor_pile = game.players[0].pile_at(0)
         target_pile = game.players[1].pile_at(0)
         self.assertEqual(actor_pile.color, Color.BLUE)
-        self.assertEqual(actor_pile.cards[0].name, "Boardwalk")
+        self.assertIsInstance(actor_pile.cards[0], SingleColorProperty)
+        scp = cast(SingleColorProperty, actor_pile.cards[0])
+        self.assertEqual(scp.name, "Boardwalk")
         self.assertEqual(target_pile.color, Color.RED)
-        self.assertEqual(target_pile.cards[0].name, "Kentucky Avenue")
+        scp = cast(SingleColorProperty, target_pile.cards[0])
+        self.assertEqual(scp.name, "Kentucky Avenue")
 
     def test_payment_due_includes_pay_and_just_say_no(self) -> None:
         game = Game()

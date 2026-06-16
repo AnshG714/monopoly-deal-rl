@@ -44,7 +44,6 @@ from models.game.commands import (
 from models.game.commands.debt_collector import DEBT_COLLECTOR_PAYMENT_M
 from models.game.commands.its_my_birthday import BIRTHDAY_GIFT_M
 from models.game.commands.rent import rent_m_due_for_color
-from models.game.legal_moves import command_identity_key
 from models.game.game import Game
 from models.game.pending import (
     DealBreakerPending,
@@ -183,7 +182,7 @@ def _select_bucketed_top_moves(
         by_bucket.setdefault(move_bucket(game, move), []).append(item)
 
     selected: list[GameCommand] = []
-    selected_keys: set[object] = set()
+    selected_keys: set[GameCommand] = set()
 
     for bucket in BUCKET_ORDER:
         quota = BUCKET_QUOTAS[bucket]
@@ -222,22 +221,20 @@ def _scored_moves(
 
 def _append_unique(
     selected: list[GameCommand],
-    selected_keys: set[object],
+    selected_keys: set[GameCommand],
     move: GameCommand,
 ) -> None:
-    key = command_identity_key(move)
-    if key in selected_keys:
+    if move in selected_keys:
         return
     selected.append(move)
-    selected_keys.add(key)
+    selected_keys.add(move)
 
 
 def _ensure_included(
     selected: list[GameCommand],
     move: GameCommand,
 ) -> list[GameCommand]:
-    move_key = command_identity_key(move)
-    if any(command_identity_key(existing) == move_key for existing in selected):
+    if any(existing == move for existing in selected):
         return selected
     if not selected:
         return [move]

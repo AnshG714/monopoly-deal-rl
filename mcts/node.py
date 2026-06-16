@@ -3,12 +3,11 @@ from __future__ import annotations
 import math
 
 from models.game.commands import GameCommand
-from models.game.legal_moves import command_identity_key
 from mcts.consts import C_UCT
 
 
-def _keys_for_moves(moves: list[GameCommand]) -> set[object]:
-    return {command_identity_key(move) for move in moves}
+def _keys_for_moves(moves: list[GameCommand]) -> set[GameCommand]:
+    return set(moves)
 
 
 class ISMCTSNode:
@@ -23,28 +22,21 @@ class ISMCTSNode:
         self.visits = 0
 
         # For tracking how many times each move was an option inside a determinization.
-        # Keys match ``command_identity_key`` so PayDebt / DiscardCards dedupe correctly.
-        self.availability_counts: dict[object, int] = {}
+        self.availability_counts: dict[GameCommand, int] = {}
 
     def get_legal_children(self, legal_moves: list[GameCommand]) -> list[ISMCTSNode]:
         legal_keys = _keys_for_moves(legal_moves)
         return [
             child
             for child in self.children
-            if child.move is not None and command_identity_key(child.move) in legal_keys
+            if child.move is not None and child.move in legal_keys
         ]
 
     def get_unexpanded_moves(self, legal_moves: list[GameCommand]) -> list[GameCommand]:
         expanded_keys = {
-            command_identity_key(child.move)
-            for child in self.children
-            if child.move is not None
+            child.move for child in self.children if child.move is not None
         }
-        return [
-            move
-            for move in legal_moves
-            if command_identity_key(move) not in expanded_keys
-        ]
+        return [move for move in legal_moves if move not in expanded_keys]
 
     def choose_child_uct(
         self,
@@ -58,16 +50,14 @@ class ISMCTSNode:
 
         for child in legal_children:
             assert child.move is not None
-            move_key = command_identity_key(child.move)
-            self.availability_counts[move_key] = (
-                self.availability_counts.get(move_key, 0) + 1
-            )
+            move = child.move
+            self.availability_counts[move] = self.availability_counts.get(move, 0) + 1
 
             if child.visits == 0:
                 # If the child has never been visited, it is unexplored and should be chosen.
                 return child
 
-            move_availability = self.availability_counts[move_key]
+            move_availability = self.availability_counts[move]
 
             win_rate = child.wins / child.visits
             exploitation = win_rate if maximize else 1 - win_rate
