@@ -1,27 +1,52 @@
 from dataclasses import dataclass
 import random
 import time
+from typing import Callable
 
-from mcts.solver import ISMCTSSolver
+from mcts.consts import (
+    DEFAULT_ITERS,
+    DEFAULT_MAX_CANDIDATE_MOVES,
+    DEFAULT_MAX_INTERRUPT_MOVES,
+    DEFAULT_MAX_SEARCH_SECONDS,
+    DEFAULT_PRUNING_STRATEGY,
+    DEFAULT_ROLLOUT_DEPTH,
+)
+from mcts.solver import ISMCTSSolver, ISMCTSSolverResult
 from models.game.game import Game
 from rollout import MovePolicyType, get_action_with_policy
 
 MAX_STEPS = 10_000
 
+DecisionCallback = Callable[[Game, ISMCTSSolverResult, int], None]
+
 
 @dataclass(frozen=True)
 class GameSpec:
+    """One seeded game configuration. Only ``seed`` is required.
+
+    By default only ``mcts_seat`` runs MCTS and the other seat uses
+    ``opponent_policy``. Set ``both_players_mcts=True`` for symmetric
+    self-play with the same search config on both sides.
+    """
+
     seed: int
-    mcts_seat: int
-    mcts_rollout_policy: MovePolicyType
-    opponent_policy: MovePolicyType
-    mcts_iters: int
-    rollout_depth: int | None
-    max_candidate_moves: int | None
-    max_interrupt_moves: int | None
-    pruning_strategy: str
-    max_game_seconds: float | None
-    max_search_seconds: float | None
+    mcts_seat: int = 0
+    both_players_mcts: bool = False
+    mcts_rollout_policy: MovePolicyType = MovePolicyType.HEURISTIC
+    opponent_policy: MovePolicyType = MovePolicyType.HEURISTIC
+    mcts_iters: int = DEFAULT_ITERS
+    rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH
+    max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES
+    max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES
+    pruning_strategy: str = DEFAULT_PRUNING_STRATEGY
+    max_game_seconds: float | None = None
+    max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS
+
+    @property
+    def mcts_seats(self) -> tuple[int, ...]:
+        if self.both_players_mcts:
+            return (0, 1)
+        return (self.mcts_seat,)
 
 
 @dataclass(frozen=True)
@@ -39,15 +64,10 @@ class GameResult:
         return not self.timed_out and self.winner == self.mcts_seat
 
 
-def run_game(spec: GameSpec) -> GameResult:
-    """Play one seeded game and return the result from MCTS' perspective."""
-    game = Game(rng=random.Random(spec.seed))
-    game.start_match()
-
-    solver_seed = spec.seed * 2 + spec.mcts_seat
-    mcts = ISMCTSSolver(
+def _make_solver(spec: GameSpec, seat: int) -> ISMCTSSolver:
+    return ISMCTSSolver(
         iterations=spec.mcts_iters,
-        rng=random.Random(solver_seed),
+        rng=random.Random(spec.seed * 2 + seat),
         rollout_depth=spec.rollout_depth,
         max_candidate_moves=spec.max_candidate_moves,
         max_interrupt_moves=spec.max_interrupt_moves,
@@ -55,6 +75,17 @@ def run_game(spec: GameSpec) -> GameResult:
         max_search_seconds=spec.max_search_seconds,
         rollout_policy=spec.mcts_rollout_policy,
     )
+
+
+def run_game(
+    spec: GameSpec,
+    decision_callback: DecisionCallback | None = None,
+) -> GameResult:
+    """Play one seeded game and return the result from ``spec.mcts_seat``'s view."""
+    game = Game(rng=random.Random(spec.seed))
+    game.start_match()
+
+    solvers = {seat: _make_solver(spec, seat) for seat in spec.mcts_seats}
 
     steps = 0
     mcts_decisions = 0
@@ -72,8 +103,12 @@ def run_game(spec: GameSpec) -> GameResult:
                 elapsed_s=elapsed_s,
             )
 
-        if game.acting_player_idx == spec.mcts_seat:
-            result = mcts.search(game)
+        acting_idx = game.acting_player_idx
+        solver = solvers.get(acting_idx)
+        if solver is not None:
+            result = solver.search(game)
+            if decision_callback is not None:
+                decision_callback(game, result, steps)
             move = result.move
             mcts_decisions += 1
         else:

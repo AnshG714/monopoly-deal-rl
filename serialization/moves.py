@@ -33,17 +33,22 @@ def _serialize_param(value: Any) -> Any:
 
 
 def encode_move(game: Game, move_id: int, move: GameCommand) -> dict:
+    payload = move_to_dict(move)
+    return {
+        "id": move_id,
+        "kind": payload["kind"],
+        "label": move_label(game, move),
+        "params": payload["params"],
+    }
+
+
+def move_to_dict(move: GameCommand) -> dict:
+    """JSON-safe move payload without requiring a ``Game`` context."""
     params: dict[str, Any] = {}
     if dataclasses.is_dataclass(move):
         for field in dataclasses.fields(move):
             params[field.name] = _serialize_param(getattr(move, field.name))
-
-    return {
-        "id": move_id,
-        "kind": type(move).__name__,
-        "label": move_label(game, move),
-        "params": params,
-    }
+    return {"kind": type(move).__name__, "params": params}
 
 
 def encode_moves(game: Game, moves: list[GameCommand]) -> list[dict]:

@@ -7,14 +7,14 @@ from models.game.pending import (
     DealBreakerPending,
     ForcedDealPending,
     PaymentDue,
+    Pending,
     SlyDealPending,
 )
 
 from .cards import serialize_card, serialize_property_set
 
 
-def _serialize_pending(game: Game) -> dict | None:
-    pending = game.pending
+def serialize_pending(pending: Pending | None) -> dict | None:
     if pending is None:
         return None
 
@@ -106,7 +106,7 @@ def view_for_player(game: Game, viewer_idx: int) -> dict:
         "discard_top": (
             serialize_card(game.discard_pile[-1]) if game.discard_pile else None
         ),
-        "pending": _serialize_pending(game),
+        "pending": serialize_pending(game.pending),
         "players": [
             _serialize_player(game, player_idx, viewer_idx=viewer_idx)
             for player_idx in range(len(game.players))

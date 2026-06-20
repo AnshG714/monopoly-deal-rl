@@ -142,6 +142,7 @@ def _build_specs(
             GameSpec(
                 game_seed,
                 0,
+                False,  # both_players_mcts
                 mcts_rollout_policy,
                 opponent_policy,
                 mcts_iters,
@@ -157,6 +158,7 @@ def _build_specs(
             GameSpec(
                 game_seed,
                 1,
+                False,  # both_players_mcts
                 mcts_rollout_policy,
                 opponent_policy,
                 mcts_iters,
