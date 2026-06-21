@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import sys
 import json
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,9 @@ from serialization.moves import move_to_dict
 from serialization.state import serialize_pending
 
 from .decision_row import DecisionRow
+
+# Needed because we currently store big JSON blobs in the CSV file
+csv.field_size_limit(sys.maxsize)
 
 CSV_COLUMNS = (
     "seed",
@@ -39,8 +43,7 @@ def _json(value: object) -> str:
 def _visits_payload(visits: dict[GameCommand, float]) -> list[dict[str, Any]]:
     ranked = sorted(visits.items(), key=lambda item: item[1], reverse=True)
     return [
-        {"move": move_to_dict(move), "visit_share": share}
-        for move, share in ranked
+        {"move": move_to_dict(move), "visit_share": share} for move, share in ranked
     ]
 
 
