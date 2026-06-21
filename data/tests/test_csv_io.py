@@ -4,7 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from data.csv_io import decision_row_to_csv_record, write_decision_rows_csv
+from data.csv_io import (
+    decision_row_to_csv_record,
+    merge_decision_rows_csvs,
+    write_decision_rows_csv,
+)
 from data.generate_self_play_data import generate_self_play_data_for_game
 from mcts import GameSpec
 
@@ -43,6 +47,33 @@ class DecisionCsvTests(unittest.TestCase):
                 json.loads(value)
             else:
                 self.assertIsInstance(value, (int, bool))
+
+    def test_merge_decision_rows_csvs_concatenates_chunks(self) -> None:
+        specs = [
+            GameSpec(seed=1, both_players_mcts=True, mcts_iters=3),
+            GameSpec(seed=2, both_players_mcts=True, mcts_iters=3),
+        ]
+        chunks = [generate_self_play_data_for_game(spec) for spec in specs]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            chunk_paths = [
+                tmp_path / f"seed_{spec.seed}.csv" for spec in specs
+            ]
+            for path, rows in zip(chunk_paths, chunks, strict=True):
+                write_decision_rows_csv(path, rows)
+
+            merged_path = tmp_path / "merged.csv"
+            row_count = merge_decision_rows_csvs(chunk_paths, merged_path)
+
+            with merged_path.open(newline="", encoding="utf-8") as handle:
+                merged = list(csv.DictReader(handle))
+
+        expected_rows = sum(len(rows) for rows in chunks)
+        self.assertEqual(row_count, expected_rows)
+        self.assertEqual(len(merged), expected_rows)
+        seeds = {int(row["seed"]) for row in merged}
+        self.assertEqual(seeds, {1, 2})
 
 
 if __name__ == "__main__":

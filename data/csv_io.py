@@ -79,3 +79,21 @@ def write_decision_rows_csv(path: Path, rows: list[DecisionRow]) -> None:
         for row in rows:
             record = decision_row_to_csv_record(row)
             writer.writerow({column: record[column] for column in CSV_COLUMNS})
+
+
+def merge_decision_rows_csvs(sources: list[Path], destination: Path) -> int:
+    """Concatenate chunk CSVs into one dataset. Returns total data rows written."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    row_count = 0
+    with destination.open("w", newline="", encoding="utf-8") as out_handle:
+        writer: csv.DictWriter | None = None
+        for source in sources:
+            with source.open(newline="", encoding="utf-8") as in_handle:
+                reader = csv.DictReader(in_handle)
+                if writer is None:
+                    writer = csv.DictWriter(out_handle, fieldnames=CSV_COLUMNS)
+                    writer.writeheader()
+                for record in reader:
+                    writer.writerow({column: record[column] for column in CSV_COLUMNS})
+                    row_count += 1
+    return row_count

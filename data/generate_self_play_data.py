@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import threading
 import time
+from concurrent.futures import Future, ProcessPoolExecutor
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -10,10 +12,12 @@ from mcts import GameSpec, run_game
 from mcts.solver import ISMCTSSolverResult
 from models.game.game import Game
 
-from .csv_io import write_decision_rows_csv
+from .csv_io import merge_decision_rows_csvs, write_decision_rows_csv
 from .decision_row import DecisionRow
 
-DEFAULT_OUTPUT = Path(__file__).resolve().parent / "self_play_data.csv"
+DATA_DIR = Path(__file__).resolve().parent
+TEMP_DIR = DATA_DIR / "temp"
+SELF_PLAY_DIR = DATA_DIR / "self_play"
 
 
 def _snapshot_row(
@@ -66,19 +70,57 @@ def generate_self_play_data_for_game(spec: GameSpec) -> list[DecisionRow]:
     ]
 
 
+def default_output_path(num_games: int, seed_start: int) -> Path:
+    return SELF_PLAY_DIR / f"data_{num_games}_{seed_start}.csv"
+
+
+def chunk_csv_path(temp_dir: Path, seed: int) -> Path:
+    return temp_dir / f"seed_{seed}.csv"
+
+
 def generate_self_play_data(
     num_games: int,
     *,
     seed_start: int = 0,
-) -> list[DecisionRow]:
+    workers: int = 1,
+    temp_dir: Path | None = None,
+) -> list[Path]:
     if num_games < 1:
         raise ValueError("num_games must be at least 1")
 
-    rows: list[DecisionRow] = []
-    for game_idx in range(num_games):
-        spec = GameSpec(seed=seed_start + game_idx, both_players_mcts=True)
-        rows.extend(generate_self_play_data_for_game(spec))
-    return rows
+    chunk_dir = temp_dir or TEMP_DIR
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+
+    temp_paths: list[Path] = []
+    paths_lock = threading.Lock()
+
+    def write_chunk(future: Future[list[DecisionRow]], seed: int) -> None:
+        path = chunk_csv_path(chunk_dir, seed)
+        try:
+            rows = future.result()
+        except Exception as exc:
+            print(
+                f"Error generating self-play data for seed {seed}: {exc}",
+                flush=True,
+            )
+            return
+        write_decision_rows_csv(path, rows)
+        with paths_lock:
+            temp_paths.append(path)
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(
+                generate_self_play_data_for_game,
+                GameSpec(seed=seed_start + game_idx, both_players_mcts=True),
+            )
+            for game_idx in range(num_games)
+        ]
+        for future, game_idx in zip(futures, range(num_games), strict=True):
+            seed = seed_start + game_idx
+            future.add_done_callback(lambda f, s=seed: write_chunk(f, s))
+
+    return sorted(temp_paths, key=lambda path: int(path.stem.removeprefix("seed_")))
 
 
 def _parse_args() -> argparse.Namespace:
@@ -91,30 +133,53 @@ def _parse_args() -> argparse.Namespace:
         help="number of games to generate (default: 1)",
     )
     parser.add_argument(
+        "-s",
         "--seed-start",
         type=int,
         default=0,
         help="first game seed (default: 0)",
     )
     parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=1,
+        help="number of workers to use (default: 1)",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         type=Path,
-        default=DEFAULT_OUTPUT,
-        help=f"output CSV path (default: {DEFAULT_OUTPUT})",
+        default=None,
+        help="final merged CSV path (default: data/self_play/data_{games}_{seed_start}.csv)",
+    )
+    parser.add_argument(
+        "--temp-dir",
+        type=Path,
+        default=TEMP_DIR,
+        help=f"directory for per-game chunk CSVs (default: {TEMP_DIR})",
     )
     return parser.parse_args()
 
 
 def main() -> None:
     args = _parse_args()
+    output = args.output or default_output_path(args.games, args.seed_start)
     start = time.perf_counter()
     print(f"Generating {args.games} game(s)...", flush=True)
-    rows = generate_self_play_data(args.games, seed_start=args.seed_start)
-    write_decision_rows_csv(args.output, rows)
+    chunk_paths = generate_self_play_data(
+        args.games,
+        seed_start=args.seed_start,
+        workers=args.workers,
+        temp_dir=args.temp_dir,
+    )
+    row_count = merge_decision_rows_csvs(chunk_paths, output)
+    for path in chunk_paths:
+        path.unlink(missing_ok=True)
     elapsed = time.perf_counter() - start
     print(
-        f"Wrote {len(rows)} decisions to {args.output} in {elapsed:.1f}s",
+        f"Merged {len(chunk_paths)} chunk(s), {row_count} decisions -> {output} "
+        f"in {elapsed:.1f}s",
         flush=True,
     )
 
