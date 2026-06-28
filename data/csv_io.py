@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import csv
-import sys
 import json
+import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
-from models.game.commands import GameCommand
-from serialization.cards import serialize_card, serialize_property_set
+from models.game.commands import EndTurn, GameCommand
+from models.player import BankableCard
+from serialization.cards import (
+    deserialize_card,
+    deserialize_property_set,
+    serialize_card,
+    serialize_property_set,
+)
 from serialization.moves import move_to_dict
-from serialization.state import serialize_pending
+from serialization.state import deserialize_pending, serialize_pending
 
 from .decision_row import DecisionRow
 
@@ -100,3 +106,63 @@ def merge_decision_rows_csvs(sources: list[Path], destination: Path) -> int:
                     writer.writerow({column: record[column] for column in CSV_COLUMNS})
                     row_count += 1
     return row_count
+
+
+def _parse_bool(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in {"1", "true", "yes"}
+
+
+def _parse_json_list(raw: str) -> list:
+    if not raw:
+        return []
+    return json.loads(raw)
+
+
+def csv_record_to_decision_row(record: dict[str, Any]) -> DecisionRow:
+    """Rebuild a ``DecisionRow`` for encoding; move fields are placeholders."""
+    pending_raw = record.get("pending_json") or "null"
+    pending_payload = json.loads(pending_raw)
+
+    return DecisionRow(
+        seed=int(record["seed"]),
+        step=int(record["step"]),
+        viewer_idx=int(record["viewer_idx"]),
+        chosen_move=EndTurn(),
+        legal_moves=[],
+        visits={},
+        viewer_property_piles=[
+            deserialize_property_set(payload)
+            for payload in _parse_json_list(record["viewer_property_piles_json"])
+        ],
+        viewer_hand=[
+            deserialize_card(payload)
+            for payload in _parse_json_list(record["viewer_hand_json"])
+        ],
+        viewer_bank=cast(
+            list[BankableCard],
+            [deserialize_card(payload) for payload in _parse_json_list(record["viewer_bank_json"])],
+        ),
+        opponent_property_piles=[
+            deserialize_property_set(payload)
+            for payload in _parse_json_list(record["opponent_property_piles_json"])
+        ],
+        opponent_bank=cast(
+            list[BankableCard],
+            [
+                deserialize_card(payload)
+                for payload in _parse_json_list(record["opponent_bank_json"])
+            ],
+        ),
+        opponent_hand_size=int(record["opponent_hand_size"]),
+        plays_this_turn=int(record["plays_this_turn"]),
+        pending=deserialize_pending(pending_payload),
+        timed_out=_parse_bool(record["timed_out"]),
+        viewer_won=_parse_bool(record["viewer_won"]),
+    )
+
+
+def read_decision_rows_csv(path: Path) -> list[DecisionRow]:
+    with path.open(newline="", encoding="utf-8") as handle:
+        return [csv_record_to_decision_row(record) for record in csv.DictReader(handle)]

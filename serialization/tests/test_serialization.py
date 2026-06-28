@@ -67,3 +67,20 @@ class SerializationTests(unittest.TestCase):
 
         self.assertEqual(pending["take_into_color"], "blue")
         self.assertEqual(pending["give_into_color"], "red")
+
+    def test_deserialize_card_round_trip(self) -> None:
+        from models.cards.money import MoneyCard
+        from serialization.cards import deserialize_card, serialize_card
+
+        card = MoneyCard(5)
+        self.assertEqual(deserialize_card(serialize_card(card)).value, 5)
+
+    def test_deserialize_property_set_round_trip(self) -> None:
+        from models.cards.property import Color, PropertySet, SingleColorProperty
+        from serialization.cards import deserialize_property_set, serialize_property_set
+
+        pile = PropertySet(Color.BROWN)
+        pile.add(SingleColorProperty(Color.BROWN, "Med", [1, 2], 1))
+        restored = deserialize_property_set(serialize_property_set(pile))
+        self.assertEqual(restored.color, Color.BROWN)
+        self.assertEqual(len(restored.cards), 1)

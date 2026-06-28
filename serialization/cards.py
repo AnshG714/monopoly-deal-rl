@@ -4,10 +4,23 @@ from __future__ import annotations
 
 from enum import Enum
 
-from models.cards.action import ActionCard
+from models.cards.action import (
+    ActionCard,
+    DealBreaker,
+    DebtCollector,
+    DoubleRent,
+    ForcedDeal,
+    Hotel,
+    House,
+    ItsMyBirthday,
+    JustSayNo,
+    PassGo,
+    SlyDeal,
+)
 from models.cards.base import Card
 from models.cards.money import MoneyCard
 from models.cards.property import (
+    Color,
     MultiColorProperty,
     PropertyCard,
     PropertySet,
@@ -115,3 +128,74 @@ def serialize_property_set(pile: PropertySet) -> dict:
 
 def serialize_enum(value: Enum) -> str:
     return value.value
+
+
+_ACTION_FACTORIES = {
+    "deal_breaker": DealBreaker,
+    "debt_collector": DebtCollector,
+    "double_rent": DoubleRent,
+    "forced_deal": ForcedDeal,
+    "sly_deal": SlyDeal,
+    "house": House,
+    "hotel": Hotel,
+    "its_my_birthday": ItsMyBirthday,
+    "just_say_no": JustSayNo,
+    "pass_go": PassGo,
+}
+
+
+def deserialize_card(payload: dict) -> Card:
+    """Rebuild a card from ``serialize_card`` output."""
+    card_type = payload["type"]
+
+    if card_type == "money":
+        return MoneyCard(payload["value"])
+
+    if card_type == "action":
+        factory = _ACTION_FACTORIES.get(payload["action_type"])
+        if factory is None:
+            raise ValueError(f"unknown action_type: {payload['action_type']!r}")
+        return factory()
+
+    if card_type == "rent":
+        if "color1" in payload and "color2" in payload:
+            return RentCard(Color(payload["color1"]), Color(payload["color2"]))
+        return WildRentCard()
+
+    if card_type == "property":
+        kind = payload.get("property_kind")
+        if kind == "single":
+            return SingleColorProperty(
+                Color(payload["color"]),
+                payload["name"],
+                payload["rents"],
+                payload["value"],
+            )
+        if kind == "multi":
+            return MultiColorProperty(
+                Color(payload["color1"]),
+                payload["color1_rents"],
+                Color(payload["color2"]),
+                payload["color2_rents"],
+                payload["value"],
+            )
+        if kind == "wild":
+            return WildColorProperty()
+        raise ValueError(f"unknown property_kind: {kind!r}")
+
+    raise ValueError(f"unknown card type: {card_type!r}")
+
+
+def deserialize_property_set(payload: dict) -> PropertySet:
+    """Rebuild a property pile from ``serialize_property_set`` output."""
+    pile = PropertySet(Color(payload["color"]))
+    for card_payload in payload["cards"]:
+        card = deserialize_card(card_payload)
+        if not isinstance(card, PropertyCard):
+            raise TypeError("property pile cards must be PropertyCard instances")
+        pile.add(card)
+    if payload.get("has_house"):
+        pile.attach_house(House())
+    if payload.get("has_hotel"):
+        pile.attach_hotel(Hotel())
+    return pile

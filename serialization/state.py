@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from models.cards.property import Color
 from models.game.game import Game
 from models.game.pending import (
     DealBreakerPending,
+    DealBreakerTheftIntent,
     ForcedDealPending,
+    ForcedDealSwapIntent,
+    JustSayNoNegotiation,
     PaymentDue,
     Pending,
     SlyDealPending,
+    SlyDealStealIntent,
 )
 
 from .cards import serialize_card, serialize_property_set
@@ -67,6 +72,77 @@ def serialize_pending(pending: Pending | None) -> dict | None:
         }
 
     return {"kind": type(pending).__name__}
+
+
+def _deserialize_jsn(payload: dict | None) -> JustSayNoNegotiation | None:
+    if payload is None:
+        return None
+    return JustSayNoNegotiation(
+        defender_idx=payload["defender_idx"],
+        actor_idx=payload["actor_idx"],
+        responder=payload["responder"],
+        chain_started=payload["chain_started"],
+    )
+
+
+def deserialize_pending(payload: dict | None) -> Pending | None:
+    """Rebuild pending state from ``serialize_pending`` output."""
+    if payload is None:
+        return None
+
+    kind = payload["kind"]
+    if kind == "PaymentDue":
+        return PaymentDue(
+            creditor_idx=payload["creditor_idx"],
+            debtor_idx=payload["debtor_idx"],
+            amount_m=payload["amount_m"],
+            jsn=_deserialize_jsn(payload.get("jsn")),
+        )
+
+    if kind == "SlyDealPending":
+        actor_idx = payload["actor_idx"]
+        victim_idx = payload["victim_idx"]
+        steal = SlyDealStealIntent(
+            victim_idx=victim_idx,
+            target_set_idx=payload["target_set_idx"],
+            target_card_idx=payload["target_card_idx"],
+            into_color=Color(payload["into_color"]),
+        )
+        jsn = _deserialize_jsn(payload.get("jsn")) or JustSayNoNegotiation.open_negotiation(
+            victim_idx, actor_idx
+        )
+        return SlyDealPending(actor_idx=actor_idx, steal=steal, jsn=jsn)
+
+    if kind == "ForcedDealPending":
+        actor_idx = payload["actor_idx"]
+        target_player_idx = payload["target_player_idx"]
+        swap = ForcedDealSwapIntent(
+            target_player_idx=target_player_idx,
+            my_set_idx=payload["my_set_idx"],
+            my_card_idx=payload["my_card_idx"],
+            their_set_idx=payload["their_set_idx"],
+            their_card_idx=payload["their_card_idx"],
+            take_into_color=Color(payload["take_into_color"]),
+            give_into_color=Color(payload["give_into_color"]),
+        )
+        jsn = _deserialize_jsn(payload.get("jsn")) or JustSayNoNegotiation.open_negotiation(
+            target_player_idx, actor_idx
+        )
+        return ForcedDealPending(actor_idx=actor_idx, swap=swap, jsn=jsn)
+
+    if kind == "DealBreakerPending":
+        actor_idx = payload["actor_idx"]
+        victim_idx = payload["victim_idx"]
+        theft = DealBreakerTheftIntent(
+            victim_idx=victim_idx,
+            victim_set_idx=payload["victim_set_idx"],
+        )
+        jsn = _deserialize_jsn(payload.get("jsn")) or JustSayNoNegotiation.open_negotiation(
+            victim_idx, actor_idx
+        )
+        return DealBreakerPending(actor_idx=actor_idx, theft=theft, jsn=jsn)
+
+    raise ValueError(f"unknown pending kind: {kind!r}")
 
 
 def _serialize_player(game: Game, player_idx: int, *, viewer_idx: int) -> dict:
