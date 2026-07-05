@@ -26,4 +26,5 @@ exclude = ["*.tests", "*.tests.*"]
 [dependency-groups]
 dev = [
     "pyright>=1.1.410",
+    "torch>=2.12.1",
 ]
