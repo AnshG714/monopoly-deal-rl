@@ -93,8 +93,11 @@ def generate_self_play_data(
 
     temp_paths: list[Path] = []
     paths_lock = threading.Lock()
+    done_count = 0
+    done_counter_lock = threading.Lock()
 
     def write_chunk(future: Future[list[DecisionRow]], seed: int) -> None:
+        nonlocal done_count
         path = chunk_csv_path(chunk_dir, seed)
         try:
             rows = future.result()
@@ -107,6 +110,9 @@ def generate_self_play_data(
         write_decision_rows_csv(path, rows)
         with paths_lock:
             temp_paths.append(path)
+        with done_counter_lock:
+            done_count += 1
+            print(f"Done {done_count} of {num_games} games", flush=True)
 
     with ProcessPoolExecutor(max_workers=workers) as executor:
         futures = [
