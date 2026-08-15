@@ -1,7 +1,7 @@
 import unittest
 
-from encoder.encode_hand import encode_hand
-from encoder.layout import COLORS, HAND_DIM
+from data.encoder.state_encoder.encode_hand import encode_hand
+from data.encoder.state_encoder.layout import COLORS, HAND_DIM
 from models.cards.money import MoneyCard
 from models.cards.property import Color, PropertySet, SingleColorProperty
 from models.cards.rent import RentCard

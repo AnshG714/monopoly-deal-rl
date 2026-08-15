@@ -130,4 +130,5 @@ These runs are intentionally not part of the main argument:
 - **Claim that depth `3` is clearly stronger than depth `6`.** The 200-game
   verification did not support that claim.
 
-The next step would be to build a move ranking model which can be used as a prior to guide the MCTS search.
+The next step was a learned move-ranking prior (and value leaf). Results are in
+[Neural Net Experiments (Value + Policy)](neural_nets_experiment_report.md).

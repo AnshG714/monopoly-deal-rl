@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from models.cards.action import ActionCardType
-from models.cards.property import CARDS_IN_SET_FOR_COLOR, Color
+from models.cards.property import CARDS_IN_SET_FOR_COLOR, Color, PropertySet
 from models.cards.registry import build_full_deck
 from models.game.commands.base import MAX_PLAYS_PER_TURN
 from models.player import Player
@@ -136,14 +137,12 @@ def color_one_hot(color: Color | None) -> list[float]:
     return out
 
 
-def piles_by_color(piles: list) -> dict[Color, object]:
+def piles_by_color(piles: Sequence[PropertySet]) -> dict[Color, PropertySet]:
     return {pile.color: pile for pile in piles}
 
 
-def player_with_property_sets(piles: list) -> Player:
+def player_with_property_sets(piles: Sequence[PropertySet]) -> Player:
     """Minimal player surface for ``rent_m_due_for_color``."""
-    from models.player import Player
-
     player = Player("_encode")
-    player.property_sets = piles
+    player.property_sets = list(piles)
     return player

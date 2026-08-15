@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from models.cards.property import (
     CARDS_IN_SET_FOR_COLOR,
-    Color,
     MultiColorProperty,
     PropertySet,
     WildColorProperty,
 )
 from models.game.commands.rent import rent_m_due_for_color
+from models.player import Player
 
 from .layout import (
     COLORS,
     FEATURES_PER_COLOR,
-    PROPERTIES_DIM,
     normalize_rent,
     normalize_set_count,
     piles_by_color,
@@ -23,19 +24,19 @@ from .layout import (
 
 
 def encode_properties(
-    viewer_piles: list[PropertySet],
-    opponent_piles: list[PropertySet],
+    viewer_piles: Sequence[PropertySet],
+    opponent_piles: Sequence[PropertySet],
 ) -> list[float]:
     viewer_player = player_with_property_sets(viewer_piles)
     opponent_player = player_with_property_sets(opponent_piles)
-    return _encode_player_properties(viewer_piles, viewer_player) + _encode_player_properties(
-        opponent_piles, opponent_player
-    )
+    return _encode_player_properties(
+        viewer_piles, viewer_player
+    ) + _encode_player_properties(opponent_piles, opponent_player)
 
 
 def _encode_player_properties(
-    piles: list[PropertySet],
-    player: object,
+    piles: Sequence[PropertySet],
+    player: Player,
 ) -> list[float]:
     by_color = piles_by_color(piles)
     out: list[float] = []
@@ -60,7 +61,3 @@ def _encode_player_properties(
             ]
         )
     return out
-
-
-def properties_dim() -> int:
-    return PROPERTIES_DIM

@@ -19,7 +19,7 @@ from mcts.consts import (
     DEFAULT_PRUNING_STRATEGY,
     DEFAULT_ROLLOUT_DEPTH,
 )
-from mcts import GameSpec, GameResult, run_game
+from mcts import GameSpec, GameResult, HeuristicMovePrior, run_game
 from rollout import MovePolicyType
 
 DEFAULT_NUM_GAMES = 100
@@ -136,38 +136,37 @@ def _build_specs(
         raise ValueError("paired benchmark needs an even --games value")
 
     specs: list[GameSpec] = []
+    move_prior = HeuristicMovePrior(strategy=pruning_strategy)
     for pair_idx in range(num_games // 2):
         game_seed = seed + pair_idx
         specs.append(
             GameSpec(
-                game_seed,
-                0,
-                False,  # both_players_mcts
-                mcts_rollout_policy,
-                opponent_policy,
-                mcts_iters,
-                rollout_depth,
-                max_candidate_moves,
-                max_interrupt_moves,
-                pruning_strategy,
-                max_game_seconds,
-                max_search_seconds,
+                seed=game_seed,
+                mcts_seat=0,
+                mcts_rollout_policy=mcts_rollout_policy,
+                opponent_policy=opponent_policy,
+                mcts_iters=mcts_iters,
+                rollout_depth=rollout_depth,
+                max_candidate_moves=max_candidate_moves,
+                max_interrupt_moves=max_interrupt_moves,
+                max_game_seconds=max_game_seconds,
+                max_search_seconds=max_search_seconds,
+                move_prior=move_prior,
             )
         )
         specs.append(
             GameSpec(
-                game_seed,
-                1,
-                False,  # both_players_mcts
-                mcts_rollout_policy,
-                opponent_policy,
-                mcts_iters,
-                rollout_depth,
-                max_candidate_moves,
-                max_interrupt_moves,
-                pruning_strategy,
-                max_game_seconds,
-                max_search_seconds,
+                seed=game_seed,
+                mcts_seat=1,
+                mcts_rollout_policy=mcts_rollout_policy,
+                opponent_policy=opponent_policy,
+                mcts_iters=mcts_iters,
+                rollout_depth=rollout_depth,
+                max_candidate_moves=max_candidate_moves,
+                max_interrupt_moves=max_interrupt_moves,
+                max_game_seconds=max_game_seconds,
+                max_search_seconds=max_search_seconds,
+                move_prior=move_prior,
             )
         )
     return specs
@@ -364,7 +363,7 @@ def _parse_args() -> argparse.Namespace:
         "--pruning-strategy",
         choices=("global", "bucketed"),
         default=DEFAULT_PRUNING_STRATEGY,
-        help="strategy used when --max-candidate-moves prunes legal moves",
+        help="HeuristicMovePrior strategy when --max-candidate-moves prunes",
     )
     parser.add_argument(
         "--max-game-seconds",

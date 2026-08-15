@@ -8,9 +8,9 @@ from mcts.consts import (
     DEFAULT_MAX_CANDIDATE_MOVES,
     DEFAULT_MAX_INTERRUPT_MOVES,
     DEFAULT_MAX_SEARCH_SECONDS,
-    DEFAULT_PRUNING_STRATEGY,
     DEFAULT_ROLLOUT_DEPTH,
 )
+from mcts.move_prior import MovePrior
 from mcts.solver import ISMCTSSolver, ISMCTSSolverResult
 from models.game.game import Game
 from rollout import MovePolicyType, get_action_with_policy
@@ -38,9 +38,10 @@ class GameSpec:
     rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH
     max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES
     max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES
-    pruning_strategy: str = DEFAULT_PRUNING_STRATEGY
     max_game_seconds: float | None = None
     max_search_seconds: float | None = DEFAULT_MAX_SEARCH_SECONDS
+    leaf_evaluator: Callable[[Game, int], float] | None = None
+    move_prior: MovePrior | None = None
 
     @property
     def mcts_seats(self) -> tuple[int, ...]:
@@ -71,9 +72,10 @@ def _make_solver(spec: GameSpec, seat: int) -> ISMCTSSolver:
         rollout_depth=spec.rollout_depth,
         max_candidate_moves=spec.max_candidate_moves,
         max_interrupt_moves=spec.max_interrupt_moves,
-        pruning_strategy=spec.pruning_strategy,
         max_search_seconds=spec.max_search_seconds,
         rollout_policy=spec.mcts_rollout_policy,
+        leaf_evaluator=spec.leaf_evaluator,
+        move_prior=spec.move_prior,
     )
 
 

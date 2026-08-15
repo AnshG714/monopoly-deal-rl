@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from models.cards.action import ActionCard
 from models.cards.base import Card
 from models.cards.money import MoneyCard
@@ -14,7 +16,6 @@ from .layout import (
     ACTION_TYPES,
     BANK_DENOMINATIONS,
     COLORS,
-    HAND_DIM,
     normalize_hand_count,
     normalize_rent,
     player_with_property_sets,
@@ -22,8 +23,8 @@ from .layout import (
 
 
 def encode_hand(
-    hand: list[Card],
-    viewer_piles: list[PropertySet],
+    hand: Sequence[Card],
+    viewer_piles: Sequence[PropertySet],
 ) -> list[float]:
     viewer = player_with_property_sets(viewer_piles)
     return (
@@ -34,7 +35,7 @@ def encode_hand(
     )
 
 
-def _encode_hand_money(hand: list[Card]) -> list[float]:
+def _encode_hand_money(hand: Sequence[Card]) -> list[float]:
     counts = dict.fromkeys(BANK_DENOMINATIONS, 0)
     for card in hand:
         if isinstance(card, MoneyCard) and card.value in counts:
@@ -45,7 +46,7 @@ def _encode_hand_money(hand: list[Card]) -> list[float]:
     ]
 
 
-def _encode_hand_property_eligibility(hand: list[Card]) -> list[float]:
+def _encode_hand_property_eligibility(hand: Sequence[Card]) -> list[float]:
     counts = [0] * len(COLORS)
     for card in hand:
         if not isinstance(card, PropertyCard):
@@ -56,7 +57,7 @@ def _encode_hand_property_eligibility(hand: list[Card]) -> list[float]:
     return [normalize_hand_count(count) for count in counts]
 
 
-def _encode_hand_max_charge(hand: list[Card], viewer: Player) -> list[float]:
+def _encode_hand_max_charge(hand: Sequence[Card], viewer: Player) -> list[float]:
     charges = [0.0] * len(COLORS)
     for color in COLORS:
         board_rent = rent_m_due_for_color(viewer, color)
@@ -72,7 +73,7 @@ def _encode_hand_max_charge(hand: list[Card], viewer: Player) -> list[float]:
     return charges
 
 
-def _encode_hand_actions(hand: list[Card]) -> list[float]:
+def _encode_hand_actions(hand: Sequence[Card]) -> list[float]:
     action_counts = dict.fromkeys(ACTION_TYPES, 0)
     rent_count = 0
     for card in hand:
@@ -83,7 +84,3 @@ def _encode_hand_actions(hand: list[Card]) -> list[float]:
     return [
         normalize_hand_count(action_counts[action_type]) for action_type in ACTION_TYPES
     ] + [normalize_hand_count(rent_count)]
-
-
-def hand_dim() -> int:
-    return HAND_DIM

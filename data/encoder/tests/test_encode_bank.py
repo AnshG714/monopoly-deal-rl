@@ -1,7 +1,7 @@
 import unittest
 
-from encoder.encode_bank import encode_bank
-from encoder.layout import BANK_DIM, BANK_MAX_COUNTS
+from data.encoder.state_encoder.encode_bank import encode_bank
+from data.encoder.state_encoder.layout import BANK_DIM, BANK_MAX_COUNTS
 from models.cards.action import JustSayNo
 from models.cards.money import MoneyCard
 

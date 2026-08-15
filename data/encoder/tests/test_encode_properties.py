@@ -1,7 +1,7 @@
 import unittest
 
-from encoder.encode_properties import encode_properties
-from encoder.layout import PROPERTIES_DIM
+from data.encoder.state_encoder.encode_properties import encode_properties
+from data.encoder.state_encoder.layout import PROPERTIES_DIM
 from models.cards.property import Color, PropertySet, SingleColorProperty
 
 
@@ -17,7 +17,7 @@ class EncodePropertiesTests(unittest.TestCase):
             SingleColorProperty(Color.BROWN, "Mediterranean Avenue", [1, 2], 1)
         )
         encoded = encode_properties([pile], [])
-        from encoder.layout import COLORS
+        from data.encoder.state_encoder.layout import COLORS
 
         idx = COLORS.index(Color.BROWN) * 7
         self.assertAlmostEqual(encoded[idx + 1], 1 / 15)

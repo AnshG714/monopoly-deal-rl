@@ -1,12 +1,16 @@
-"""State vector encoding for ML training from ``DecisionRow`` snapshots."""
+"""ML feature encoders: state (value net) and action (policy net)."""
 
-from .encode import encode_decision_row, encode_decision_row_blocks
-from .layout import FEATURE_LAYOUT, STATE_DIM, FeatureLayout
+from data.encoder.action_encoder import (
+    ACTION_DIM,
+    encode_action,
+    encode_action_payload,
+)
+from data.encoder.state_encoder import STATE_DIM, encode_decision_row
 
 __all__ = [
-    "FEATURE_LAYOUT",
-    "FeatureLayout",
+    "ACTION_DIM",
     "STATE_DIM",
+    "encode_action",
+    "encode_action_payload",
     "encode_decision_row",
-    "encode_decision_row_blocks",
 ]

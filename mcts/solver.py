@@ -1,17 +1,17 @@
 import random
 import time
-from typing import Callable
 from dataclasses import dataclass
+from typing import Callable
 
 from mcts.consts import (
     DEFAULT_ITERS,
     DEFAULT_MAX_CANDIDATE_MOVES,
     DEFAULT_MAX_INTERRUPT_MOVES,
-    DEFAULT_PRUNING_STRATEGY,
     DEFAULT_ROLLOUT_DEPTH,
 )
 from mcts.evaluator import evaluate_reward
-from mcts.move_scoring import score_move, select_interrupt_moves, select_top_moves
+from mcts.move_prior import HeuristicMovePrior, MovePrior
+from mcts.move_scoring import select_interrupt_moves
 from mcts.node import ISMCTSNode
 from mcts.determinize import determinize
 from models.game.game import Game, GameCommand
@@ -32,9 +32,10 @@ class ISMCTSSolver:
         rollout_depth: int | None = DEFAULT_ROLLOUT_DEPTH,
         max_candidate_moves: int | None = DEFAULT_MAX_CANDIDATE_MOVES,
         max_interrupt_moves: int | None = DEFAULT_MAX_INTERRUPT_MOVES,
-        pruning_strategy: str = DEFAULT_PRUNING_STRATEGY,
         max_search_seconds: float | None = None,
         rollout_policy: MovePolicyType = MovePolicyType.HEURISTIC,
+        leaf_evaluator: Callable[[Game, int], float] | None = None,
+        move_prior: MovePrior | None = None,
     ):
         if rollout_depth is not None and rollout_depth < 0:
             raise ValueError("rollout_depth must be non-negative")
@@ -44,16 +45,15 @@ class ISMCTSSolver:
             raise ValueError("max_interrupt_moves must be positive")
         if max_search_seconds is not None and max_search_seconds <= 0:
             raise ValueError("max_search_seconds must be positive")
-        if pruning_strategy not in ("global", "bucketed"):
-            raise ValueError("pruning_strategy must be 'global' or 'bucketed'")
         self.iterations = iterations
         self._rng = rng or random.Random()
         self.rollout_depth = rollout_depth
         self.max_candidate_moves = max_candidate_moves
         self.max_interrupt_moves = max_interrupt_moves
-        self.pruning_strategy = pruning_strategy
         self.max_search_seconds = max_search_seconds
         self.rollout_policy = rollout_policy
+        self.leaf_evaluator = leaf_evaluator or evaluate_reward
+        self.move_prior: MovePrior = move_prior or HeuristicMovePrior()
 
     def search(self, game: Game) -> ISMCTSSolverResult:
         root_player_idx = game.acting_player_idx
@@ -156,13 +156,12 @@ class ISMCTSSolver:
         if self.max_candidate_moves is None or len(moves) <= self.max_candidate_moves:
             return moves
 
-        return select_top_moves(
+        return self.move_prior.select_candidates(
             game,
             moves,
             root_player_idx=root_player_idx,
             max_moves=self.max_candidate_moves,
             heuristic_move=get_action_with_policy(game, MovePolicyType.HEURISTIC),
-            strategy=self.pruning_strategy,
         )
 
     def _simulate(self, game: Game, root_player_idx: int) -> float:
@@ -175,7 +174,7 @@ class ISMCTSSolver:
                 break
             game.apply(get_action_with_policy(game, self.rollout_policy))
 
-        return evaluate_reward(game, root_player_idx)
+        return self.leaf_evaluator(game, root_player_idx)
 
     def _choose_expansion_move(
         self,
@@ -187,7 +186,7 @@ class ISMCTSSolver:
             return self._rng.choice(moves)
 
         scored_moves = [
-            (score_move(game, move, root_player_idx), -idx, move)
+            (self.move_prior.score(game, move, root_player_idx), -idx, move)
             for idx, move in enumerate(moves)
         ]
         if game.acting_player_idx == root_player_idx:

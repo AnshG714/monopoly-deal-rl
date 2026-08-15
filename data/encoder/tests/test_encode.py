@@ -5,8 +5,12 @@ from pathlib import Path
 from data.csv_io import read_decision_rows_csv, write_decision_rows_csv
 from data.decision_row import DecisionRow
 from data.generate_self_play_data import generate_self_play_data_for_game
-from encoder.encode import encode_decision_row, encode_decision_row_blocks
-from encoder.layout import FEATURE_LAYOUT, STATE_DIM
+from data.encoder.state_encoder import (
+    FEATURE_LAYOUT,
+    STATE_DIM,
+    encode_decision_row,
+    encode_decision_row_blocks,
+)
 from mcts import GameSpec
 from models.game.commands import EndTurn
 

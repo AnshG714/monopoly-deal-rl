@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from models.cards.property import (
     MultiColorProperty,
     PropertyCard,
@@ -29,8 +31,8 @@ from .layout import (
 def encode_pending(
     pending: Pending | None,
     viewer_idx: int,
-    viewer_piles: list[PropertySet],
-    opponent_piles: list[PropertySet],
+    viewer_piles: Sequence[PropertySet],
+    opponent_piles: Sequence[PropertySet],
 ) -> list[float]:
     if pending is None:
         return [0.0] * PENDING_DIM
@@ -130,22 +132,22 @@ def encode_pending(
 def _piles_for_player(
     player_idx: int,
     viewer_idx: int,
-    viewer_piles: list[PropertySet],
-    opponent_piles: list[PropertySet],
-) -> list[PropertySet]:
+    viewer_piles: Sequence[PropertySet],
+    opponent_piles: Sequence[PropertySet],
+) -> Sequence[PropertySet]:
     if player_idx == viewer_idx:
         return viewer_piles
     return opponent_piles
 
 
-def _pile_at(piles: list[PropertySet], set_idx: int) -> PropertySet | None:
+def _pile_at(piles: Sequence[PropertySet], set_idx: int) -> PropertySet | None:
     if set_idx < 0 or set_idx >= len(piles):
         return None
     return piles[set_idx]
 
 
 def _card_at(
-    piles: list[PropertySet],
+    piles: Sequence[PropertySet],
     set_idx: int,
     card_idx: int,
 ) -> PropertyCard | None:
@@ -162,7 +164,3 @@ def _wild_multi_flags(card: PropertyCard | None) -> tuple[float, float]:
         1.0 if isinstance(card, MultiColorProperty) else 0.0,
         1.0 if isinstance(card, WildColorProperty) else 0.0,
     )
-
-
-def pending_dim() -> int:
-    return PENDING_DIM

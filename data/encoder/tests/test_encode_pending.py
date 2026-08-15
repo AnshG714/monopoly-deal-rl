@@ -1,7 +1,7 @@
 import unittest
 
-from encoder.encode_pending import encode_pending
-from encoder.layout import PENDING_DIM, PENDING_KINDS
+from data.encoder.state_encoder.encode_pending import encode_pending
+from data.encoder.state_encoder.layout import PENDING_DIM, PENDING_KINDS
 from models.cards.property import Color, PropertySet, WildColorProperty
 from models.game.pending import (
     JustSayNoNegotiation,
