@@ -92,10 +92,7 @@ class ISMCTSSolver:
 
                 next_node = node.choose_child_uct(
                     legal_moves,
-                    maximize=(
-                        self.max_candidate_moves is None
-                        or determinized_game.acting_player_idx == root_player_idx
-                    ),
+                    maximize=(determinized_game.acting_player_idx == root_player_idx),
                 )
                 if next_node is None:
                     break
