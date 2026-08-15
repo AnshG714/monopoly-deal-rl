@@ -36,6 +36,8 @@ def create_game(body: CreateGameRequest | None = None) -> GameStateResponse:
             seed=request.seed,
             human_player_idx=request.human_player_idx,
             mcts_iterations=request.mcts_iterations,
+            use_value_net=request.use_value_net,
+            use_policy_net=request.use_policy_net,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

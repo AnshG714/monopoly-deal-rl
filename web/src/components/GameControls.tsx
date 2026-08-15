@@ -12,6 +12,7 @@ interface GameControlsProps {
   isMock?: boolean;
   winnerName?: string;
   pendingActionLabel?: string;
+  aiSummary?: string;
   onStartGame: () => void;
   onEndGame: () => void;
   onNextTurn: () => void;
@@ -30,6 +31,7 @@ export function GameControls({
   isMock = false,
   winnerName,
   pendingActionLabel,
+  aiSummary,
   onStartGame,
   onEndGame,
   onNextTurn,
@@ -53,11 +55,16 @@ export function GameControls({
       wrap="wrap"
       className="shrink-0 border-b border-[var(--color-border)] bg-white/80 px-6 py-3"
     >
-      <Flex direction="column" gap="none">
+      <Flex direction="column" gap="none" className="min-w-0 shrink">
         <span className="text-sm font-semibold">Monopoly Deal</span>
         {gameOver && winnerName && (
           <span className="text-muted-foreground text-xs">
             {winnerName} wins
+          </span>
+        )}
+        {hasGame && !gameOver && aiSummary && (
+          <span className="text-muted-foreground text-xs">
+            AI: {aiSummary}
           </span>
         )}
         {hasGame && !gameOver && loading && (
@@ -70,7 +77,7 @@ export function GameControls({
         )}
       </Flex>
 
-      <Flex gap="sm" wrap="wrap" align="center">
+      <Flex gap="sm" wrap="wrap" align="center" className="ml-auto shrink-0">
         {showMockPicker && (
           <label className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground whitespace-nowrap">
@@ -116,14 +123,16 @@ export function GameControls({
             {discardLabel}
           </Button>
         )}
-        <Button
-          size="sm"
-          className="bg-accent text-accent-foreground hover:bg-accent/90"
-          onClick={onStartGame}
-          disabled={loading || (hasGame && !gameOver)}
-        >
-          Start game
-        </Button>
+        {hasGame && (
+          <Button
+            size="sm"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={onStartGame}
+            disabled={loading || !gameOver}
+          >
+            New game
+          </Button>
+        )}
         <Button
           size="sm"
           variant="destructive"

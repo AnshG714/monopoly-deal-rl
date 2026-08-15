@@ -14,6 +14,8 @@ class GameSession:
     game: Game
     human_player_idx: int
     mcts_iterations: int
+    use_value_net: bool = False
+    use_policy_net: bool = False
 
 
 class GameStore:

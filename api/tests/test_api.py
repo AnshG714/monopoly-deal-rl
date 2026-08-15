@@ -21,6 +21,8 @@ class ApiTests(unittest.TestCase):
         game_id = created["game_id"]
         self.assertEqual(created["acting_player_idx"], 0)
         self.assertGreater(len(created["legal_moves"]), 0)
+        self.assertIn("use_value_net", created)
+        self.assertIn("use_policy_net", created)
 
         get_resp = self.client.get(f"/api/games/{game_id}")
         self.assertEqual(get_resp.status_code, 200)

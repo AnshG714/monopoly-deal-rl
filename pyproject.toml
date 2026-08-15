@@ -20,7 +20,16 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["models*", "rollout*", "mcts*", "serialization*", "api*"]
+include = [
+    "models*",
+    "rollout*",
+    "mcts*",
+    "serialization*",
+    "api*",
+    "data*",
+    "value_net*",
+    "policy_net*",
+]
 exclude = ["*.tests", "*.tests.*"]
 
 [dependency-groups]

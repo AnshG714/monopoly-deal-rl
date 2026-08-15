@@ -9,8 +9,10 @@ class CreateGameRequest(BaseModel):
     mcts_iterations: int | None = Field(
         default=None,
         ge=1,
-        description="ISMCTS iterations per AI decision (default: 500)",
+        description="ISMCTS iterations per AI decision (default: engine DEFAULT_ITERS)",
     )
+    use_value_net: bool = False
+    use_policy_net: bool = False
 
 
 class ApplyMoveRequest(BaseModel):
@@ -27,6 +29,8 @@ class GameStateResponse(BaseModel):
     state: dict
     legal_moves: list[dict]
     seed: int | None = None
+    use_value_net: bool = False
+    use_policy_net: bool = False
 
 
 class DeckResponse(BaseModel):

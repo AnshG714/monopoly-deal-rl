@@ -38,12 +38,12 @@ const flexVariants = cva("gap-[length:var(--flex-gap,0px)]", {
     },
     gap: {
       none: "[--flex-gap:0px]",
-      xs: "[--flex-gap:var(--spacing-xs)]",
-      sm: "[--flex-gap:var(--spacing-sm)]",
-      md: "[--flex-gap:var(--spacing-md)]",
-      lg: "[--flex-gap:var(--spacing-lg)]",
-      xl: "[--flex-gap:var(--spacing-xl)]",
-      card: "[--flex-gap:var(--spacing-card)]",
+      xs: "[--flex-gap:var(--space-xs)]",
+      sm: "[--flex-gap:var(--space-sm)]",
+      md: "[--flex-gap:var(--space-md)]",
+      lg: "[--flex-gap:var(--space-lg)]",
+      xl: "[--flex-gap:var(--space-xl)]",
+      card: "[--flex-gap:var(--card-gap)]",
     },
   },
   defaultVariants: {

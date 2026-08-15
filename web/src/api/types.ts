@@ -73,15 +73,19 @@ export interface GameStateResponse {
   state: GameView;
   legal_moves: LegalMove[];
   seed?: number;
-}
-
-export interface DeckResponse {
-  total: number;
-  cards: Card[];
+  use_value_net?: boolean;
+  use_policy_net?: boolean;
 }
 
 export interface CreateGameOptions {
   seed?: number;
   human_player_idx?: number;
   mcts_iterations?: number;
+  use_value_net?: boolean;
+  use_policy_net?: boolean;
+}
+
+export interface DeckResponse {
+  total: number;
+  cards: Card[];
 }

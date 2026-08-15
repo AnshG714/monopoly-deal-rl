@@ -6,6 +6,7 @@ import { DiscardCardsDialog } from "@/components/DiscardCardsDialog";
 import { DebtPaymentDialog } from "@/components/DebtPaymentDialog";
 import { GameControls } from "@/components/GameControls";
 import { JustSayNoDialog } from "@/components/JustSayNoDialog";
+import { LandingScreen, type AiConfig } from "@/components/LandingScreen";
 import { OpponentStatus } from "@/components/OpponentStatus";
 import { PlayerBank } from "@/components/PlayerBank";
 import { PlayerHand } from "@/components/PlayerHand";
@@ -15,8 +16,13 @@ import { Flex } from "@/components/ui/flex";
 import { useGame } from "@/hooks/useGame";
 import { useLegalMoves } from "@/hooks/useLegalMoves";
 import { dealActionKind } from "@/lib/dealActions";
+import { useState } from "react";
 
 export default function App() {
+  const [aiConfig, setAiConfig] = useState<AiConfig>({
+    useValueNet: false,
+    usePolicyNet: false,
+  });
   const {
     game,
     loading,
@@ -174,8 +180,15 @@ export default function App() {
     if (pendingPrompt) dismissPrompt(pendingPrompt.id);
   }
 
+  function handleStartGame() {
+    void startGame({
+      use_value_net: aiConfig.useValueNet,
+      use_policy_net: aiConfig.usePolicyNet,
+    });
+  }
+
   return (
-    <Flex direction="column" className="h-screen overflow-hidden bg-page-bg">
+    <Flex direction="column" className="h-screen w-full overflow-hidden bg-page-bg">
       <GameControls
         loading={loading}
         hasGame={game !== null}
@@ -187,7 +200,17 @@ export default function App() {
         isMock={isMock}
         winnerName={winner?.name}
         pendingActionLabel={pendingActionLabel}
-        onStartGame={() => void startGame()}
+        aiSummary={
+          game
+            ? [
+                game.use_value_net ? "value net" : null,
+                game.use_policy_net ? "policy net" : null,
+              ]
+                .filter(Boolean)
+                .join(" + ") || "heuristic"
+            : undefined
+        }
+        onStartGame={handleStartGame}
         onEndGame={endGame}
         onNextTurn={handleNextTurn}
         onReopenPendingAction={
@@ -196,12 +219,13 @@ export default function App() {
         onLoadMockScenario={loadMockScenario}
       />
 
-      {!game && !loading && (
-        <Flex className="flex-1" align="center" justify="center">
-          <p className="text-muted-foreground text-sm">
-            Press Start game to begin.
-          </p>
-        </Flex>
+      {!game && (
+        <LandingScreen
+          config={aiConfig}
+          loading={loading}
+          onChange={setAiConfig}
+          onStart={handleStartGame}
+        />
       )}
 
       {game && (

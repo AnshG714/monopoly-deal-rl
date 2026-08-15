@@ -16,6 +16,23 @@ class GameServiceTests(unittest.TestCase):
         self.assertFalse(payload["is_over"])
         self.assertGreater(len(payload["legal_moves"]), 0)
         self.assertEqual(payload["seed"], 42)
+        self.assertFalse(payload["use_value_net"])
+        self.assertFalse(payload["use_policy_net"])
+
+    def test_create_game_echoes_net_flags(self) -> None:
+        store = GameStore()
+        service = GameService(store=store, default_mcts_iterations=1)
+        payload = service.create_game(
+            seed=3,
+            use_value_net=False,
+            use_policy_net=False,
+        )
+        self.assertFalse(payload["use_value_net"])
+        self.assertFalse(payload["use_policy_net"])
+        session = store.get(payload["game_id"])
+        assert session is not None
+        self.assertFalse(session.use_value_net)
+        self.assertFalse(session.use_policy_net)
 
     def test_apply_move_runs_ai_until_human_turn(self) -> None:
         service = GameService(store=GameStore(), default_mcts_iterations=1)
